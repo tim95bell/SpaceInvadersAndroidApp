@@ -11,6 +11,10 @@ public class AndroidLauncher extends AndroidApplication {
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
+
+		// is this needed??
+		config.useAccelerometer = true;
+
 		initialize(new SpaceInvaders(), config);
 	}
 }
