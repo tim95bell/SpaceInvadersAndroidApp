@@ -9,11 +9,11 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 public class AssetManager {
 
     public static Texture background;
-
-
+    public static Texture spriteSheet;
 
     public static void init(){
         background = new Texture("sunset6.png");
+        spriteSheet = new Texture("spriteSheet2.png");
     }
 
 }
