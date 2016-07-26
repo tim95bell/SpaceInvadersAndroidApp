@@ -1,33 +1,29 @@
 package com.timbell.spaceinvaders.GameScreens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
 import static com.timbell.spaceinvaders.Assets.AssetManager.background;
 
-/**
- * Created by timbell on 18/07/16.
- */
-public class PlayScreen implements GameScreen {
 
-    // game
+/**
+ * Created by timbell on 23/07/16.
+ */
+public class MenuScreen implements GameScreen {
+
+
     private SpaceInvaders game;
 
-    // batches
     private SpriteBatch sb;
     private SpriteBatch bgBatch;
     private ShapeRenderer sr;
 
-    // game objects
-    private Player p1;
 
-    public PlayScreen(SpaceInvaders game, Camera cam){
-        this.p1 = new Player();
+
+    public MenuScreen(SpaceInvaders game){
         this.game = game;
 
         this.sb = game.getSb();
@@ -35,29 +31,33 @@ public class PlayScreen implements GameScreen {
         this.sr = game.getSr();
     }
 
-    public void update(float delta){
-        p1.update();
+    @Override
+    public void touchDown(int screenX, int screenY, int pointer, int button) {
+
+        // TEST
+        game.setState(game.PLAY_STATE);
+
     }
 
-    public void draw(){
+    @Override
+    public void render(float delta) {
+
         // Draw Background
         bgBatch.begin();
         bgBatch.draw(background, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         bgBatch.end();
 
-        // NOTE: Just a test
+        // darken background with a 30% transparent black square
+        Gdx.gl.glEnable(GL20.GL_BLEND);
         sr.begin(ShapeRenderer.ShapeType.Filled);
-        p1.draw(sr);
+        sr.setColor(0f, 0f, 0f, 0.7f);
+        sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         sr.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
     }
 
-    //-----------------SCREEN-----------------//
-    @Override
-    public void render(float delta) {
-        update(delta);
-        draw();
-    }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     @Override
     public void show() {
 
@@ -88,19 +88,8 @@ public class PlayScreen implements GameScreen {
 
     }
 
-    //-----------------INPUT-----------------//
     @Override
     public void keyDown(int keyCode) {
-        // NOTE: Just a test
-        if(keyCode == Input.Keys.LEFT)
-            p1.move(-0.1f);
-        else if(keyCode == Input.Keys.RIGHT)
-            p1.move(0.1f);
-    }
-
-    @Override
-    public void touchDown(int screenX, int screenY, int pointer, int button) {
 
     }
-
 }
