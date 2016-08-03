@@ -12,23 +12,17 @@ import static com.timbell.spaceinvaders.Assets.AssetManager.background;
 /**
  * Created by timbell on 23/07/16.
  */
-public class MenuScreen implements GameScreen {
+public class MenuScreen extends GameScreen {
 
 
-    private SpaceInvaders game;
-
-    private SpriteBatch sb;
-    private SpriteBatch bgBatch;
-    private ShapeRenderer sr;
+//    private SpriteBatch sb;
+//    private SpriteBatch bgBatch;
+//    private ShapeRenderer sr;
 
 
 
     public MenuScreen(SpaceInvaders game){
-        this.game = game;
-
-        this.sb = game.getSb();
-        this.bgBatch = game.getBgBatch();
-        this.sr = game.getSr();
+        super(game);
     }
 
     @Override
@@ -42,17 +36,20 @@ public class MenuScreen implements GameScreen {
     @Override
     public void render(float delta) {
 
+        //TEST
+        game.bgport.apply();
+
         // Draw Background
-        bgBatch.begin();
-        bgBatch.draw(background, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
-        bgBatch.end();
+        game.bgBatch.begin();
+        game.bgBatch.draw(background, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+        game.bgBatch.end();
 
         // darken background with a 30% transparent black square
         Gdx.gl.glEnable(GL20.GL_BLEND);
-        sr.begin(ShapeRenderer.ShapeType.Filled);
-        sr.setColor(0f, 0f, 0f, 0.7f);
-        sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
-        sr.end();
+        game.sr.begin(ShapeRenderer.ShapeType.Filled);
+        game.sr.setColor(0f, 0f, 0f, 0.7f);
+        game.sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+        game.sr.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
     }
