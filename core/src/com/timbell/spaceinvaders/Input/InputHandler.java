@@ -23,8 +23,13 @@ public class InputHandler implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        screen.touchDown(screenX, screenY, pointer, button);
+        screen.touchDown(screenX, screenY);
+
         return true;
+    }
+
+    public void setScreen(GameScreen screen){
+        this.screen = screen;
     }
 
     //--------------------------------------------------------------------------------

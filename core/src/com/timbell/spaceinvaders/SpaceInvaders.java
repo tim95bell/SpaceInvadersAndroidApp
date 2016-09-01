@@ -47,6 +47,8 @@ public class SpaceInvaders extends Game {
 	private OrthographicCamera cam;
 	private OrthographicCamera bgCam;
 
+	private InputHandler inputHandler;
+
 //	private FitViewport gameport;
 	/*private*/public ScalingViewport gameport;
 	/*private*/public FillViewport bgport;
@@ -97,7 +99,8 @@ public class SpaceInvaders extends Game {
 		setScreen(screens[currentState]);
 
 		// InputHandler setup
-		Gdx.input.setInputProcessor(new InputHandler(this));
+		inputHandler = new InputHandler(this);
+		Gdx.input.setInputProcessor(inputHandler);
 
 		// Init Assets
 		AssetManager.init();
@@ -179,6 +182,7 @@ public class SpaceInvaders extends Game {
 		if(state >= 0 && state < screens.length) {
 			currentState = state;
 			setScreen(screens[currentState]);
+			inputHandler.setScreen(screens[currentState]);
 
 			//turn off game loop for menu, or on otherwise
 			// NOTE: need to test this

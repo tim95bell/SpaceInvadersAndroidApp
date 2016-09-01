@@ -5,7 +5,12 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.Array;
+import com.timbell.spaceinvaders.Collision.Collision;
+import com.timbell.spaceinvaders.Entities.Enemy;
 import com.timbell.spaceinvaders.Entities.Player;
+import com.timbell.spaceinvaders.Entities.Swarm;
+import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
 import static com.timbell.spaceinvaders.Assets.AssetManager.*;
@@ -18,14 +23,40 @@ public class PlayScreen extends GameScreen {
     // game
     // game objects
     private Player p1;
+    private Swarm swarm;
+    private int[][] level1 = {
+        {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+        {2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+        {2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+        {3, 3, 3, 3, 3, 3, 3, 3, 3, 3},
+        {3, 3, 3, 3, 3, 3, 3, 3, 3, 3}
+    };
+
+    private Array<ParticleEffect> particleEffects;
+
+    private Collision collision;
 
     public PlayScreen(SpaceInvaders game, Camera cam){
         super(game);
         this.p1 = new Player();
+        this.swarm = new Swarm(level1);
+
+        this.particleEffects = new Array<ParticleEffect>(true, 0);
+
+        this.collision = new Collision(swarm, p1);
     }
 
     public void update(float delta){
         p1.update();
+        swarm.update(delta);
+
+        for(int i = particleEffects.size-1; i >= 0; --i){
+            if(particleEffects.get(i).isDead())
+                particleEffects.removeIndex(i);
+            else
+                particleEffects.get(i).update(delta);
+        }
+        particleEffects.addAll( collision.checkCollisions() );
     }
 
     public void draw(){
@@ -41,26 +72,19 @@ public class PlayScreen extends GameScreen {
         //TEST
         game.gameport.apply();
 
-        game.sb.begin();
-        game.sb.setColor(1f, 0.2f, 0.2f, 1f);
-        game.sb.draw(enemyOneA, 0, 0, 60, 40);
-        game.sb.draw(enemyOneB, 170, 100, 60, 40);
-        game.sb.setColor(0.2f, 0.2f, 1f, 1f);
-        game.sb.draw(enemyTwoA, 250, 100, 55, 40);
-        game.sb.draw(enemyTwoB, 320, 100, 55, 40);
-        game.sb.setColor(0.2f, 1f, 0.2f, 1f);
-        game.sb.draw(enemyThreeA, 100, 200, 40, 40);
-        game.sb.draw(enemyThreeB, 150, 200, 40, 40);
-        game.sb.setColor(1f, 1f, 1f, 1f);
-        game.sb.draw(playerImage, 200, 200, 65, 40);
-        game.sb.draw(zigzagBulletA, 280, 200, 15, 35);
-        game.sb.draw(zigzagBulletB, 295, 200, 15, 35);
-        game.sb.end();
-
-        // NOTE: Just a test
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        p1.draw(game.sr);
+        game.sb.begin();
+
+        swarm.draw(game.sb);
+        p1.draw(game.sb, game.sr);
+        for(int i = particleEffects.size-1; i >= 0; --i)
+            particleEffects.get(i).draw(game.sr);
+
+
+        game.sb.end();
         game.sr.end();
+
+
     }
 
     //-----------------SCREEN-----------------//
@@ -103,16 +127,13 @@ public class PlayScreen extends GameScreen {
     //-----------------INPUT-----------------//
     @Override
     public void keyDown(int keyCode) {
-        // NOTE: Just a test
-        if(keyCode == Input.Keys.LEFT)
-            p1.move(-0.1f);
-        else if(keyCode == Input.Keys.RIGHT)
-            p1.move(0.1f);
+        if(keyCode == Input.Keys.SPACE)
+            p1.shoot();
     }
 
     @Override
-    public void touchDown(int screenX, int screenY, int pointer, int button) {
-
+    public void touchDown(float x, float y){
+        p1.shoot();
     }
 
 }

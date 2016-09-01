@@ -1,5 +1,6 @@
 package com.timbell.spaceinvaders.Assets;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
@@ -11,6 +12,9 @@ public class AssetManager {
 
     public static Texture background;
     public static Texture spriteSheet;
+    public static Texture exitSymbol;
+    public static Texture playSymbol;
+    public static Texture settingsSymbol;
 
     public static TextureRegion enemyOneA;
     public static TextureRegion enemyOneB;
@@ -22,14 +26,18 @@ public class AssetManager {
     public static TextureRegion zigzagBulletA;
     public static TextureRegion zigzagBulletB;
 
-    public static Vector3 enemyOneColor;
-    public static Vector3 enemyTwoColor;
-    public static Vector3 enemyThreeColor;
-    public static Vector3 playerColor;
+    public static Color enemyOneColor;
+    public static Color enemyTwoColor;
+    public static Color enemyThreeColor;
+    public static Color playerColor;
 
     public static void init(){
         background = new Texture("sunset6.png");
         spriteSheet = new Texture("spriteSheet2.png");
+
+        exitSymbol = new Texture("exitSymbol.png");
+        playSymbol = new Texture("playSymbol.png");
+        settingsSymbol = new Texture("settingsSymbol.png");
 
         enemyOneA = new TextureRegion(spriteSheet, 0, 0, 12, 8);
         enemyOneB = new TextureRegion(spriteSheet, 12, 0, 12, 8);
@@ -41,10 +49,10 @@ public class AssetManager {
         zigzagBulletA = new TextureRegion(spriteSheet, 29, 8, 3, 7);
         zigzagBulletB = new TextureRegion(spriteSheet, 32, 8, 3, 7);
 
-        enemyOneColor = new Vector3(1.0f, 0.2f, 0.2f);
-        enemyTwoColor = new Vector3(0.2f, 1.0f, 0.2f);
-        enemyThreeColor = new Vector3(0.2f, 0.2f, 1.0f);
-        playerColor = new Vector3(1.0f, 1.0f, 1.0f);
+        enemyOneColor = new Color(1.0f, 0.2f, 0.2f, 1f);
+        enemyTwoColor = new Color(0.2f, 1.0f, 0.2f, 1f);
+        enemyThreeColor = new Color(0.2f, 0.2f, 1.0f, 1f);
+        playerColor = new Color(1.0f, 1.0f, 1.0f, 1f);
     }
 
 }

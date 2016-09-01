@@ -1,9 +1,8 @@
 package com.timbell.spaceinvaders.Entities;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.SpaceInvaders;
-
-import sun.jvm.hotspot.memory.Space;
 
 /**
  * Created by timbell on 3/08/16.
@@ -13,47 +12,69 @@ public class Swarm {
     public static final int ROWS = 5;
     public static final int COLS = 10;
 
-    public static final int START_HEIGHT = SpaceInvaders.UNIT*4;
+    private int direction = 1;
+
+    public static final int START_HEIGHT = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*4;
 
     public double sideWidth;
-    Enemy[][] members;
+//    Enemy[][] members;
+    public Array<Enemy> members;
+    public Array<Bullet> bullets;
 
-    public Swarm(){
-        members = new Enemy[ ROWS ][ COLS ];
+
+    private float movePeriod;
+    private float timeSinceMove = 0;
+
+
+    public Swarm(int[][] level){
+//        members = new Enemy[ ROWS ][ COLS ];
+        members = new Array(false, ROWS*COLS);
+        bullets = new Array(false, 0);
+        levelArrayToSwarm(level);
 
         int swarmWidth = (COLS*3*SpaceInvaders.UNIT) + (COLS-1)*SpaceInvaders.UNIT;
         sideWidth = (SpaceInvaders.WIDTH-swarmWidth)/2.0;
+
+        updateSpeed();
     }
 
-    public void update(){
+    public void update(float delta){
+        //shoot();
+
+        timeSinceMove += delta;
+        while(timeSinceMove > movePeriod) {
+            boolean gameOver = move();
+            timeSinceMove -= movePeriod;
+        }
 
     }
 
     public void draw(SpriteBatch batch){
-        for(int row = 0; row < ROWS; ++row){
-            for(int col = 0; col < COLS; ++col){
-                members[row][col].draw(batch);
-            }
+
+        for(int i = 0; i < members.size; ++i){
+            members.get(i).draw(batch);
         }
+
+
     }
 
     public boolean move(){
         boolean gonePastEdge = false;
-        for(int row = 0; row < ROWS; ++row){
-            for(int col = 0; col < COLS; ++col){
-                // move this member, and capture it if any of them go past edge of screen
-                gonePastEdge = members[row][col].move() || gonePastEdge;
-            }
+
+        for(int i = 0; i < members.size; ++i){
+            gonePastEdge = members.get(i).move(direction) || gonePastEdge;
         }
+
         // if any went past edge of screen, then flip speed, move down, and move back twice
         // also capture if enemies have gone to low, then the game would be over
         boolean gameOver = false;
-        Enemy.flipDirection();
-        for(int row = 0; row < ROWS; ++row){
-            for(int col = 0; col < COLS; ++col){
-                // handle edge collision, and capture gameOver if it occurs
-                gameOver = members[row][col].handleEdgeCollision() || gameOver;
+        if(gonePastEdge) {
+            direction *= -1;
+            for(int i = 0; i < members.size; ++i){
+                members.get(i).move(direction);
+                gameOver = members.get(i).moveDown() || gameOver;
             }
+
         }
         // returns true if the game is over
         return gameOver;
@@ -67,24 +88,34 @@ public class Swarm {
         for(int row = 0; row < ROWS; ++row){
             for(int col = 0; col < COLS; ++col){
                 if(level[row][col] == 1){
-                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4) + ((col)*SpaceInvaders.UNIT);
-                    int y = START_HEIGHT + (row*SpaceInvaders.UNIT*4);
-                    members[row][col] = new EnemyOne( x, y );
+                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4);
+                    int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
+                    members.add( new EnemyOne(this, x, y) );
                 }
                 else if(level[row][col] == 2){
-                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4) + ((col)*SpaceInvaders.UNIT);
-                    int y = START_HEIGHT + (row*SpaceInvaders.UNIT*4);
-                    members[row][col] = new EnemyTwo( x, y );
+                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4);
+                    int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
+                    members.add( new EnemyTwo(this, x, y) );
                 }
                 else if(level[row][col] == 3){
-                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4) + ((col)*SpaceInvaders.UNIT) + (SpaceInvaders.UNIT/2);
-                    int y = START_HEIGHT + (row*SpaceInvaders.UNIT*4);
-                    members[row][col] = new EnemyThree( x, y );
+                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4) + (SpaceInvaders.UNIT/2);
+                    int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
+                    members.add( new EnemyThree(this, x, y) );
                 }
             }
         }
 
+
     }
+
+    public void updateSpeed(){
+        float percent = (float)(members.size-1)/(float)(ROWS*COLS);
+//        float percentSqr = percent*percent;
+        float percentSqrt = (float)Math.sqrt((double)percent);
+        movePeriod = 0.1f + percentSqrt*0.9f;
+    }
+
+
 
 
 }

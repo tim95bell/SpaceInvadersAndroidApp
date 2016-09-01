@@ -3,8 +3,6 @@ package com.timbell.spaceinvaders.GameScreens;
 import com.badlogic.gdx.Screen;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-import sun.jvm.hotspot.memory.Space;
-
 /**
  * Created by timbell on 18/07/16.
  */
@@ -21,7 +19,7 @@ public abstract class GameScreen implements Screen {
 
     }
 
-    public void touchDown(int screenX, int screenY, int pointer, int button){
+    public void touchDown(float x, float y){
 
     }
 
