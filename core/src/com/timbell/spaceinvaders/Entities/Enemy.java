@@ -18,8 +18,8 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  */
 public abstract class Enemy {
 
-    public static final int BULLET_WIDTH = 3;
-    public static final int BULLET_HEIGHT = 6;
+    public static final int BULLET_WIDTH = 5;
+    public static final int BULLET_HEIGHT = 10;
     public static final int BULLET_SPEED = -2;
     public static final int MANY_PARTICLES = 75;
     public static boolean useImageOne;

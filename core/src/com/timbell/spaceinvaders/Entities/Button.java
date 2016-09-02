@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
@@ -66,14 +67,27 @@ public class Button {
         return (this.x < x && this.x+size > x)&&(this.y < y && this.y+size > y);
     }
 
+    public Rectangle getRect(){
+        return new Rectangle(x, y, size, size);
+    }
+
     public ParticleEffect[] hit(){
         visible = false;
 //        return ParticleEffect.buttonParticleEffect((int)x, (int)y, (int)size, 10000, buttonColor, symbolColor, x+difference, y+difference, size-(difference*2) );
         return ParticleEffect.buttonParticleEffect(x, y, size, symX, symY, symSize, 10000, buttonColor, symbolColor, symbol);
     }
 
+    public float getX(){
+        return x;
+    }
 
+    public float getY(){
+        return y;
+    }
 
+    public float getSize(){
+        return size;
+    }
 
 
 }

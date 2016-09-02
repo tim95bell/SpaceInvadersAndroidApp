@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Array;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
+import com.timbell.spaceinvaders.SpaceInvaders;
 
 /**
  * Created by timbell on 1/09/16.
@@ -44,6 +45,7 @@ public class Bullet {
         float tempYSpeed = ySpeed > 0 ? 0 : ySpeed;
         return new ParticleEffect(tempYSpeed, x+width/2, y+height/2, 3, 50, color);
     }
+
 
     public int getX(){
         return x;

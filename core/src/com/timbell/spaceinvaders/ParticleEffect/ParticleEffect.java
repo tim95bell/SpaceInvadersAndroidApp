@@ -72,6 +72,8 @@ public class ParticleEffect {
             }
         }
 
+        pMap.dispose();
+
         outside.set(outsideArr, outsideColor);
         inside.set(insideArr, insideColor);
 

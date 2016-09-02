@@ -4,16 +4,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
-import com.timbell.spaceinvaders.Collision.Collision;
-import com.timbell.spaceinvaders.Entities.Enemy;
+import com.timbell.spaceinvaders.Collision.PlayCollision;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.Entities.Swarm;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.SpaceInvaders;
-import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
 import static com.timbell.spaceinvaders.Assets.AssetManager.*;
 
@@ -36,16 +33,16 @@ public class PlayScreen extends GameScreen {
 
     private Array<ParticleEffect> particleEffects;
 
-    private Collision collision;
+    private PlayCollision playCollision;
 
-    public PlayScreen(SpaceInvaders game, Camera cam){
+    public PlayScreen(SpaceInvaders game, Camera cam, Player p1){
         super(game);
-        this.p1 = new Player();
+        this.p1 = p1;
         this.swarm = new Swarm(level1);
 
         this.particleEffects = new Array<ParticleEffect>(true, 0);
 
-        this.collision = new Collision(swarm, p1, particleEffects);
+        this.playCollision = new PlayCollision(swarm, p1, particleEffects);
     }
 
     public void update(float delta){
@@ -58,7 +55,7 @@ public class PlayScreen extends GameScreen {
             else
                 particleEffects.get(i).update(delta);
         }
-        particleEffects.addAll( collision.checkCollisions() );
+        particleEffects.addAll( playCollision.checkCollisions() );
     }
 
     public void draw(){

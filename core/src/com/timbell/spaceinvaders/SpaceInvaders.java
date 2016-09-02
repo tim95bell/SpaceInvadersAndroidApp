@@ -13,6 +13,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.timbell.spaceinvaders.Assets.AssetManager;
+import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.GameScreens.MenuScreen;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
@@ -97,7 +98,7 @@ public class SpaceInvaders extends Game {
 		screens = new GameScreen[2];
 		currentState = MENU_STATE;
 		screens[MENU_STATE] = new MenuScreen(this);
-		screens[PLAY_STATE] = new PlayScreen(this, cam);
+		screens[PLAY_STATE] = null;
 		setScreen(screens[currentState]);
 
 		// InputHandler setup
@@ -180,22 +181,39 @@ public class SpaceInvaders extends Game {
 		calculateSideBarWidth(width, height);
 	}
 
-	public void setState(int state){
-		if(state >= 0 && state < screens.length) {
-			currentState = state;
-			setScreen(screens[currentState]);
-			inputHandler.setScreen(screens[currentState]);
+//	public void setState(int state){
+//		if(state >= 0 && state < screens.length) {
+//			if(state == PLAY_STATE)
+//				screens[state] = new PlayState();
+//			currentState = state;
+//			setScreen(screens[currentState]);
+//			inputHandler.setScreen(screens[currentState]);
+//
+//			//turn off game loop for menu, or on otherwise
+//			// NOTE: need to test this
+////			if(state == MENU_STATE){
+////				Gdx.graphics.setContinuousRendering(false);
+////			}
+////			else{
+////				Gdx.graphics.setContinuousRendering(true);
+////			}
+//		}
+//	}
 
-			//turn off game loop for menu, or on otherwise
-			// NOTE: need to test this
-//			if(state == MENU_STATE){
-//				Gdx.graphics.setContinuousRendering(false);
-//			}
-//			else{
-//				Gdx.graphics.setContinuousRendering(true);
-//			}
-		}
+	public void changeToPlayState(Player p1){
+		screens[PLAY_STATE] = new PlayScreen(this, cam, p1);
+		screens[currentState].dispose();
+		currentState = PLAY_STATE;
+		setScreen(screens[currentState]);
 	}
+
+	public void changeToMenuState(){
+		screens[MENU_STATE] = new MenuScreen(this);
+		screens[currentState].dispose();
+		currentState = MENU_STATE;
+		setScreen(screens[currentState]);
+	}
+
 
 	public void calculateSideBarWidth(int width, int height){
 
