@@ -5,6 +5,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
+import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
 /**
  * Created by timbell on 6/08/16.
@@ -15,6 +17,9 @@ public class Button {
     private float size;
     private Color buttonColor, symbolColor;
     private Texture symbol;
+    public boolean visible;
+    public float difference;
+
 
     public Button(float x, float y, float size, Color buttonColor, Color symbolColor, Texture symbol){
         this.x = x;
@@ -23,6 +28,8 @@ public class Button {
         this.buttonColor = buttonColor;
         this.symbolColor = symbolColor;
         this.symbol = symbol;
+        visible = true;
+        difference = size/6;
     }
 
     public void update(){
@@ -52,6 +59,9 @@ public class Button {
 //    }
 
     public void drawShape(ShapeRenderer sr){
+        if(!visible)
+            return;
+
         float circleRadius = size/5;//size/8;
         //rect1
         sr.setColor(buttonColor);
@@ -69,14 +79,20 @@ public class Button {
     }
 
     public void drawSymbol(SpriteBatch sb){
-        //symbol
+        if(!visible)
+            return;
+
         sb.setColor(symbolColor);
-        float difference = size/6;
         sb.draw(symbol, x + difference, y + difference, size - (difference * 2), size - (difference * 2));
     }
 
     public boolean contains(int x, int y){
         return (this.x < x && this.x+size > x)&&(this.y < y && this.y+size > y);
+    }
+
+    public ParticleEffect[] hit(){
+        visible = false;
+        return ParticleEffect.buttonParticleEffect((int)x, (int)y, (int)size, 10000, buttonColor, symbolColor, x+difference, y+difference, size-(difference*2) );
     }
 
 

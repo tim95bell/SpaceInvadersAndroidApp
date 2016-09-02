@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 
 import com.badlogic.gdx.math.Rectangle;
+import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 
 /**
  * Created by timbell on 1/09/16.
@@ -38,8 +39,9 @@ public class Bullet {
         sr.rect(x, y, width, height);
     }
 
-    public void hit(){
+    public ParticleEffect hit(){
         owningList.removeValue(this, true);
+        return new ParticleEffect(ySpeed, x+width/2, y+height/2, 3, 50, color);
     }
 
     public int getX(){

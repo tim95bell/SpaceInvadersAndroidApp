@@ -3,6 +3,7 @@ package com.timbell.spaceinvaders.GameScreens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
@@ -12,6 +13,7 @@ import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.Entities.Swarm;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.SpaceInvaders;
+import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
 import static com.timbell.spaceinvaders.Assets.AssetManager.*;
 
@@ -43,7 +45,7 @@ public class PlayScreen extends GameScreen {
 
         this.particleEffects = new Array<ParticleEffect>(true, 0);
 
-        this.collision = new Collision(swarm, p1);
+        this.collision = new Collision(swarm, p1, particleEffects);
     }
 
     public void update(float delta){
@@ -60,29 +62,40 @@ public class PlayScreen extends GameScreen {
     }
 
     public void draw(){
-        // Draw Background
-
-        //TEST
+        // draw background
         game.bgport.apply();
-
         game.bgBatch.begin();
         game.bgBatch.draw(background, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         game.bgBatch.end();
 
-        //TEST
+        // draw the rest
         game.gameport.apply();
 
-        game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        game.sb.begin();
 
-        swarm.draw(game.sb);
-        p1.draw(game.sb, game.sr);
+        // Shape Drawing
+
+        game.sr.begin(ShapeRenderer.ShapeType.Filled);
+
+        p1.drawBullets(game.sr);
+        swarm.drawBullets(game.sr);
+
+        game.sr.end();
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        game.sr.begin(ShapeRenderer.ShapeType.Filled);
         for(int i = particleEffects.size-1; i >= 0; --i)
             particleEffects.get(i).draw(game.sr);
+        game.sr.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
 
+
+        // Sprite Drawing
+        game.sb.begin();
+
+        p1.draw(game.sb);
+        swarm.draw(game.sb);
 
         game.sb.end();
-        game.sr.end();
 
 
     }

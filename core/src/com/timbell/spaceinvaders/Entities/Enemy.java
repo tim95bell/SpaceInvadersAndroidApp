@@ -18,8 +18,14 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  */
 public abstract class Enemy {
 
+    public static final int BULLET_WIDTH = 3;
+    public static final int BULLET_HEIGHT = 6;
+    public static final int BULLET_SPEED = -2;
+    public static final int MANY_PARTICLES = 75;
+    public static boolean useImageOne;
+
+
     protected int x, y;
-    protected boolean useImageOne;
 
     protected Color color;
     protected TextureRegion imageOne;
@@ -36,10 +42,6 @@ public abstract class Enemy {
         this.swarm = swarm;
     }
 
-    public void update(){
-        useImageOne = !useImageOne;
-    }
-
     public void draw(SpriteBatch batch){
 
         batch.setColor(color);
@@ -52,7 +54,7 @@ public abstract class Enemy {
 
     public ParticleEffect hit(){
         die();
-        return new ParticleEffect(x, y, 10, 20, color);
+        return new ParticleEffect(x+width/2, y+height/2, 10, MANY_PARTICLES, color);
     }
 
     public void die(){
@@ -61,14 +63,16 @@ public abstract class Enemy {
     }
 
     public boolean move(int direction){
-        useImageOne = !useImageOne;
         x += SpaceInvaders.UNIT * direction;
         //return if it has gone past the edge of the screen
         return x+width > SpaceInvaders.WIDTH || x < 0;
     }
 
+    public Bullet shoot(){
+        return new Bullet(swarm.bullets, x+width/2-BULLET_WIDTH/2, y+height, BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, color);
+    }
+
     public boolean moveDown(){
-        useImageOne = !useImageOne;
         y -= SpaceInvaders.UNIT;
         //return if it is to low, and therefore the player has lost the game
         return y+height < SpaceInvaders.LOSE_HEIGHT;
@@ -76,6 +80,26 @@ public abstract class Enemy {
 
     public Rectangle getRect(){
         return new Rectangle(x, y, width, height);
+    }
+
+    public int getX(){
+        return x;
+    }
+
+    public int getY(){
+        return y;
+    }
+
+    public int getWidth(){
+        return width;
+    }
+
+    public int getHeight(){
+        return height;
+    }
+
+    public static void changeImage(){
+        useImageOne = !useImageOne;
     }
 
 }

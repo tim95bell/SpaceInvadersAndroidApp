@@ -17,6 +17,7 @@ import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.GameScreens.MenuScreen;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
 import com.timbell.spaceinvaders.Input.InputHandler;
+import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
 import static com.timbell.spaceinvaders.Assets.AssetManager.*;
 
@@ -56,7 +57,8 @@ public class SpaceInvaders extends Game {
 	@Override
 	public void create () {
 		// dont want continuous rendering for menuScreen, which is first screen
-		Gdx.graphics.setContinuousRendering(false);
+//		Gdx.graphics.setContinuousRendering(false);
+		Gdx.graphics.setContinuousRendering(true);
 
 		AssetManager.init();
 
@@ -186,12 +188,12 @@ public class SpaceInvaders extends Game {
 
 			//turn off game loop for menu, or on otherwise
 			// NOTE: need to test this
-			if(state == MENU_STATE){
-				Gdx.graphics.setContinuousRendering(false);
-			}
-			else{
-				Gdx.graphics.setContinuousRendering(true);
-			}
+//			if(state == MENU_STATE){
+//				Gdx.graphics.setContinuousRendering(false);
+//			}
+//			else{
+//				Gdx.graphics.setContinuousRendering(true);
+//			}
 		}
 	}
 

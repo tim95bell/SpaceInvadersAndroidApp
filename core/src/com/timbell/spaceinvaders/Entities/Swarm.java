@@ -1,6 +1,7 @@
 package com.timbell.spaceinvaders.Entities;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
@@ -24,6 +25,7 @@ public class Swarm {
 
     private float movePeriod;
     private float timeSinceMove = 0;
+    private float shootChance = 0.01f;
 
 
     public Swarm(int[][] level){
@@ -43,8 +45,21 @@ public class Swarm {
 
         timeSinceMove += delta;
         while(timeSinceMove > movePeriod) {
+            Enemy.changeImage();
+
             boolean gameOver = move();
+
+            for(int i = 0; i < members.size; ++i){
+                if(Math.random() < shootChance){
+                    bullets.add(members.get(i).shoot());
+                }
+            }
+
             timeSinceMove -= movePeriod;
+        }
+
+        for(int i = 0; i < bullets.size; ++i){
+            bullets.get(i).update();
         }
 
     }
@@ -55,7 +70,12 @@ public class Swarm {
             members.get(i).draw(batch);
         }
 
+    }
 
+    public void drawBullets(ShapeRenderer sr){
+        for(int i = 0; i < bullets.size; ++i) {
+            bullets.get(i).draw(sr);
+        }
     }
 
     public boolean move(){

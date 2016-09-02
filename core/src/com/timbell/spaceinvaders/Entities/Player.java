@@ -7,7 +7,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.Assets.AssetManager;
+import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.SpaceInvaders;
+import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
 import com.badlogic.gdx.math.Rectangle;
 
@@ -36,10 +38,14 @@ public class Player {
         this.bullets = new Array<Bullet>(true, 0);
     }
 
-    public void draw(SpriteBatch sb, ShapeRenderer sr){
+    public void draw(SpriteBatch sb){
+
         sb.setColor(AssetManager.playerColor);
         sb.draw(AssetManager.playerImage, loc.x, loc.y, width, height);
 
+    }
+
+    public void drawBullets(ShapeRenderer sr){
         for(int i = 0; i < bullets.size; ++i) {
             bullets.get(i).draw(sr);
         }
@@ -101,18 +107,33 @@ public class Player {
     }
 
     public void shoot(){
-        System.out.println("player shoot");
         if( bullets.size < maxBullets ){
             bullets.add( new Bullet(bullets, (int)loc.x+width/2-(5/2), (int)loc.y+height, 5, 10, /*2*/8, AssetManager.playerColor) );
         }
     }
 
-    public void hit(){
-
+    public ParticleEffect hit(){
+        return new ParticleEffect((int)loc.x+width/2, (int)loc.y+height/2, 10, 75, AssetManager.playerColor);
     }
 
     public Rectangle getRect(){
         return new Rectangle((int)loc.x, (int)loc.y, width ,height);
+    }
+
+    public float getX(){
+        return loc.x;
+    }
+
+    public float getY(){
+        return loc.y;
+    }
+
+    public int getWidth(){
+        return width;
+    }
+
+    public int getHeight(){
+        return height;
     }
 
 }
