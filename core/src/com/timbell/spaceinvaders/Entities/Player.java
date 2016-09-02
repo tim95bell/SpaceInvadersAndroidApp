@@ -113,7 +113,7 @@ public class Player {
     }
 
     public ParticleEffect hit(){
-        return new ParticleEffect((int)loc.x+width/2, (int)loc.y+height/2, 10, 75, AssetManager.playerColor);
+        return new ParticleEffect(0, (int)loc.x+width/2, (int)loc.y+height/2, 10, 75, AssetManager.playerColor);
     }
 
     public Rectangle getRect(){

@@ -13,8 +13,6 @@ public class Particle{
     private ParticleEffect owner;
 
     public Particle(ParticleEffect owner, float yVel, float x, float y, float spread){
-        if(yVel > 0)
-            yVel = 0;
         loc = new Vector2( (float)(x + (Math.random()*spread) - spread/2),
                 (float)(y + (Math.random()*spread) - spread/2));
         vel = new Vector2();
@@ -22,15 +20,12 @@ public class Particle{
         vel.x *= (float)(Math.random()*ParticleEffect.SPEED);
         vel.y *= (float)(Math.random()*ParticleEffect.SPEED);
         vel.y += yVel*-0.5f;
-        //vel = new Vector2( (float)(Math.random()*SPEED*2 - SPEED),
-//                    yVel*-0.5f + (float)(Math.random()*SPEED*2 - SPEED));
         this.owner = owner;
     }
 
-    // TODO: problem, this constructor needs set owner to be called directly after
-    public Particle(float x, float y){
+     public Particle(ParticleEffect owner, float x, float y){
         loc = new Vector2(x, y);
-//        vel = new Vector2(0, 0);
+        this.owner = owner;
         vel = new Vector2( (float)Math.random()*0.4f-0.2f, (float)Math.random()*0.4f-0.2f );
     }
 

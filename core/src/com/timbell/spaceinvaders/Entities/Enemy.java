@@ -54,7 +54,7 @@ public abstract class Enemy {
 
     public ParticleEffect hit(){
         die();
-        return new ParticleEffect(x+width/2, y+height/2, 10, MANY_PARTICLES, color);
+        return new ParticleEffect(0, x+width/2, y+height/2, 10, MANY_PARTICLES, color);
     }
 
     public void die(){

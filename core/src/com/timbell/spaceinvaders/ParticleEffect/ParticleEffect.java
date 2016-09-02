@@ -2,6 +2,8 @@ package com.timbell.spaceinvaders.ParticleEffect;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -27,16 +29,10 @@ public class ParticleEffect {
     private boolean dead;
 
 
-
-
-    public ParticleEffect(Array<Particle> pArr, Color color){
-        particles = new Particle[pArr.size];
-        for(int i = 0; i < particles.length; ++i) {
-            particles[i] = pArr.get(i);
-            particles[i].setOwner(this);
-        }
-        this.color = new Color(color);
+    public ParticleEffect(){
         this.dead = false;
+        this.color = null;
+        this.particles = null;
     }
 
     public ParticleEffect(float yVel, int x, int y, int spread, int manyParticles, Color color){
@@ -49,58 +45,48 @@ public class ParticleEffect {
         }
     }
 
-    public ParticleEffect(int x, int y, int spread, int manyParticles, Color color){
-        particles = new Particle[manyParticles];
-        this.color = new Color(color);
-        this.dead = false;
-
-        for(int i = 0; i < manyParticles; ++i){
-            particles[i] = new Particle(this, 0, x, y, spread);
-        }
-    }
-
     // For BUTTONS
-    public static ParticleEffect[] buttonParticleEffect(int x, int y, int spread, int manyParticles, Color outsideColor, Color insideColor, float symbolX, float symbolY, float symbolSize){
-//        Pixmap pMap = ScreenUtils.getFrameBufferPixmap(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
-        AssetManager.playSymbol.getTextureData().prepare();
-        Pixmap pMap = AssetManager.playSymbol.getTextureData().consumePixmap();
+    // sym must have white for the symbol part of it
+    public static ParticleEffect[] buttonParticleEffect(float x, float y, float size, float symX, float symY, float symSize, int manyParticles, Color outsideColor, Color insideColor, Texture sym) {
+        sym.getTextureData().prepare();
+        Pixmap pMap = sym.getTextureData().consumePixmap();
 
         Array<Particle> outsideArr = new Array<Particle>(false, 0);
         Array<Particle> insideArr = new Array<Particle>(false, 0);
+        ParticleEffect outside = new ParticleEffect();
+        ParticleEffect inside = new ParticleEffect();
         for(int i = 0; i < manyParticles; ++i){
+            Vector2 loc = new Vector2( (float)(x + (Math.random()*size)), (float)(y + (Math.random()*size)));
 
-            Vector2 loc = new Vector2( (float)(x + (Math.random()*spread)), (float)(y + (Math.random()*spread)));
-
-            if(loc.x > symbolX && loc.x < symbolX+symbolSize && loc.y > symbolY && loc.y < symbolY+symbolSize) {
+            // if loc is inside sym
+            if(loc.x > symX && loc.x < symX+symSize && loc.y > symY && loc.y < symY+symSize) {
                 Color color = new Color();
-//            Color.rgba8888ToColor(color, pMap.getPixel((int)loc.x, (int)loc.y));
-                Color.rgba8888ToColor(color, pMap.getPixel((int) (loc.x - symbolX), (int) (loc.y - symbolY) ));
-//            if( color.equals(insideColor) ){
-                if (color.equals(Color.WHITE)) {
-                    insideArr.add(new Particle(loc.x, loc.y));
-                } else {
-                    outsideArr.add(new Particle(loc.x, loc.y));
-                }
+                Color.rgba8888ToColor(color, pMap.getPixel((int) (loc.x - symX), (int) (loc.y - symY) ));
+                if (color.equals(Color.WHITE))
+                    insideArr.add(new Particle(inside, loc.x, loc.y));
+                else
+                    outsideArr.add(new Particle(outside, loc.x, loc.y));
             }
             else{
-                outsideArr.add(new Particle(loc.x, loc.y));
+                outsideArr.add(new Particle(outside, loc.x, loc.y));
             }
-
         }
-        ParticleEffect outside = new ParticleEffect(outsideArr, outsideColor);
-        ParticleEffect inside = new ParticleEffect(insideArr, insideColor);
+
+        outside.set(outsideArr, outsideColor);
+        inside.set(insideArr, insideColor);
 
         return new ParticleEffect[]{outside, inside};
     }
 
-    public ParticleEffect(int x, int y, int spread, int manyParticles){
-        particles = new Particle[manyParticles];
-        this.dead = false;
-
-        for(int i = 0; i < manyParticles; ++i){
-            particles[i] = new Particle(this, 0, x, y, spread);
+    public void set(Array<Particle> pArr, Color color){
+        this.particles = new Particle[pArr.size];
+        for(int i = 0; i < particles.length; ++i) {
+            particles[i] = pArr.get(i);
         }
+        this.color = new Color(color);
+        this.dead = false;
     }
+
 
     public void update(float delta){
         timeElapsed += delta;

@@ -41,7 +41,8 @@ public class Bullet {
 
     public ParticleEffect hit(){
         owningList.removeValue(this, true);
-        return new ParticleEffect(ySpeed, x+width/2, y+height/2, 3, 50, color);
+        float tempYSpeed = ySpeed > 0 ? 0 : ySpeed;
+        return new ParticleEffect(tempYSpeed, x+width/2, y+height/2, 3, 50, color);
     }
 
     public int getX(){
