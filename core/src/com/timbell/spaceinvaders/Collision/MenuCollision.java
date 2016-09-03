@@ -17,7 +17,7 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  */
 public class MenuCollision {
     private Player p1;
-    private Array<Bullet> playerBullets;
+    private Bullet[] playerBullets;
     private Array<ParticleEffect> particleEffects;
     private Array<Button> buttons;
 
@@ -37,29 +37,19 @@ public class MenuCollision {
     public Array<ParticleEffect> checkCollisions(){
         newParticleEffects = new Array<ParticleEffect>(true, 0);
 
-        playerBulletsAndBounds();
-        particles();
-        playerBulletsAndButtons();
-
-        return newParticleEffects;
-    }
-
-    public void playerBulletsAndBounds(){
         //playerBullets and roof/walls
-        for(int i = playerBullets.size-1; i >= 0; --i){
-            Bullet bullet = playerBullets.get(i);
-
+        int numBullets = p1.getNumBullets();
+        for(int i = 0; i < numBullets; ++i){
+            Bullet bullet = playerBullets[i];
             if( bullet.getX() < 0 ||
                     bullet.getX()+bullet.getWidth() > SpaceInvaders.WIDTH ||
                     bullet.getY()+bullet.getHeight() > SpaceInvaders.HEIGHT) {
                 newParticleEffects.add( bullet.hit() );
+                p1.removeBullet(i);
             }
-
         }
-    }
 
-    //particles and buttons, player, bounds, sheilds
-    public void particles(){
+        //particles and buttons, player, bounds, sheilds
         for(int i = 0; i < particleEffects.size; ++i){
             Particle[] particles = particleEffects.get(i).particles;
 
@@ -68,8 +58,11 @@ public class MenuCollision {
                 float pY = particles[p].getY();
 
                 //player
-                if( p1.getRect().contains(pX, pY) ){
-                    particles[p].bounce(p1.getX(), p1.getY(), p1.getWidth(), p1.getHeight());
+                Rectangle[] playerRects = p1.getRects();
+                for(int j = 0; j < playerRects.length; ++j) {
+                    if (playerRects[j].contains(pX, pY)) {
+                        particles[p].bounce(playerRects[j].getX(), playerRects[j].getY(), (int)playerRects[j].getWidth(), (int)playerRects[j].getHeight());
+                    }
                 }
 
                 //bounds
@@ -90,22 +83,23 @@ public class MenuCollision {
 
         }
 
-    }
-
-    public void playerBulletsAndButtons(){
-        for(int i = playerBullets.size-1; i >= 0; --i) {
-            Rectangle bulletRect = playerBullets.get(i).getRect();
+        numBullets = p1.getNumBullets();
+        for(int i = numBullets-1; i >= 0; --i) {
+            Rectangle bulletRect = playerBullets[i].getRect();
             for(int j = 0; j < buttons.size; ++j){
                 if(buttons.get(j).visible  &&  bulletRect.overlaps(buttons.get(j).getRect())) {
                     newParticleEffects.addAll(buttons.get(j).hit(), 0, 2);
-                    newParticleEffects.add(playerBullets.get(i).hit());
+                    newParticleEffects.add(playerBullets[i].hit());
+                    p1.removeBullet(i);
                     menuScreen.switchToPlayScreen();
-                    return;
+                    // TODO: there was a return here
                 }
             }
         }
 
+        return newParticleEffects;
     }
+
 
 
 

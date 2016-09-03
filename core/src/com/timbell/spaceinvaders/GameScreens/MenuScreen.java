@@ -14,6 +14,7 @@ import com.timbell.spaceinvaders.Entities.Bullet;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
+import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
@@ -48,14 +49,14 @@ public class MenuScreen extends GameScreen {
 
         // TEST
         this.buttons = new Array<Button>(false, 0);
-        buttons.add(new Button(200, 200, 100, new Color(1f, 0f, 0f, 1f), new Color(0f, 1f, 0f, 1f), AssetManager.playSymbol));
+        buttons.add(new Button(SpaceInvaders.WIDTH/2f - 150f/2f, SpaceInvaders.HEIGHT/2f - 150f/2f + SpaceInvaders.UNIT*2, 150, new Color(0.576f, 0.769f, 0.49f, 1f), Color.BLACK, AssetManager.playSymbol));
 
         particleEffects = new Array<ParticleEffect>(false, 2);
 
         switchingToPlay = false;
         switchCount = 0;
 
-        backgroundTransparancy = 0.7f;
+        backgroundTransparancy = 0.9f;
 
         this.p1 = new Player();
         this.collision = new MenuCollision(this, p1, particleEffects, buttons);
@@ -80,6 +81,7 @@ public class MenuScreen extends GameScreen {
     }
 
     public void switchToPlayScreen(){
+        p1.setEntering(true);
         switchingToPlay = true;
     }
 
@@ -91,15 +93,13 @@ public class MenuScreen extends GameScreen {
 
         if(switchingToPlay){
             switchCount += delta;
-            backgroundTransparancy = 0.7f-(switchCount/switchTime)*0.7f;
+            backgroundTransparancy = 0.9f-(switchCount/switchTime)*0.4f;
             if(switchCount > switchTime) {
                 switchingToPlay = false;
                 game.changeToPlayState(p1);
             }
         }
 
-
-        //TEST
         game.bgport.apply();
 
         // Draw Background
@@ -107,19 +107,30 @@ public class MenuScreen extends GameScreen {
         game.bgBatch.draw(background, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         game.bgBatch.end();
 
+        game.gameport.apply(); // to show the actual screen being used, for other screen ratios
         // darken background with a 30% transparent black square
         Gdx.gl.glEnable(GL20.GL_BLEND);
 
+        // TODO: replace this with darkening the texture image
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
         game.sr.setColor(0f, 0f, 0f, backgroundTransparancy);
         game.sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+        game.sr.end();
 
-        for(int i = 0; i < particleEffects.size; ++i){
-            particleEffects.get(i).update(delta);
-            particleEffects.get(i).bounds();
-            particleEffects.get(i).draw(game.sr);
+
+//        game.gameport.apply();
+        game.sr.begin(ShapeRenderer.ShapeType.Filled);
+        for(int i = 0; i < particleEffects.size; ++i) {
+            if(particleEffects.get(i).isDead()) {
+                ParticleEffectPool.free(particleEffects.get(i));
+                particleEffects.removeIndex(i);
+            }
+            else {
+                particleEffects.get(i).update(delta);
+                particleEffects.get(i).bounds();
+                particleEffects.get(i).draw(game.sr);
+            }
         }
-
         game.sr.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
@@ -130,13 +141,12 @@ public class MenuScreen extends GameScreen {
         for(int i = 0; i < buttons.size; ++i)
             buttons.get(i).drawShape(game.sr);
         p1.drawBullets(game.sr);
+        p1.draw(game.sr);
         game.sr.end();
 
         game.sb.begin();
         for(int i = 0; i < buttons.size; ++i)
             buttons.get(i).drawSymbol(game.sb);
-
-        p1.draw(game.sb);
         game.sb.end();
 
 //        game.sr.begin(ShapeRenderer.ShapeType.Filled);
@@ -145,7 +155,16 @@ public class MenuScreen extends GameScreen {
 
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    @Override
+    public void dispose() {
+//        testButton = null;
+//        particleEffects = null;
+//        buttons = null;
+//        collision = null;
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     @Override
     public void show() {
 
@@ -168,11 +187,6 @@ public class MenuScreen extends GameScreen {
 
     @Override
     public void hide() {
-
-    }
-
-    @Override
-    public void dispose() {
 
     }
 

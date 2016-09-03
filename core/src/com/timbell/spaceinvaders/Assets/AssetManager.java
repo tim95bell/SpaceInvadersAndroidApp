@@ -49,9 +49,12 @@ public class AssetManager {
         zigzagBulletA = new TextureRegion(spriteSheet, 29, 8, 3, 7);
         zigzagBulletB = new TextureRegion(spriteSheet, 32, 8, 3, 7);
 
-        enemyOneColor = new Color(1.0f, 0.2f, 0.2f, 1f);
-        enemyTwoColor = new Color(0.2f, 1.0f, 0.2f, 1f);
-        enemyThreeColor = new Color(0.2f, 0.2f, 1.0f, 1f);
+//        enemyOneColor = new Color(1.0f, 0.2f, 0.2f, 1f);
+//        enemyTwoColor = new Color(0.2f, 1.0f, 0.2f, 1f);
+//        enemyThreeColor = new Color(0.2f, 0.2f, 1.0f, 1f);
+        enemyOneColor = new Color(1.0f, 0.4f, 0.4f, 1f);
+        enemyTwoColor = new Color(0.4f, 1.0f, 0.4f, 1f);
+        enemyThreeColor = new Color(0.4f, 0.4f, 1.0f, 1f);
         playerColor = new Color(1.0f, 1.0f, 1.0f, 1f);
     }
 

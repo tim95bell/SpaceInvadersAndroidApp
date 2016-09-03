@@ -13,6 +13,9 @@ public class Swarm {
     public static final int ROWS = 5;
     public static final int COLS = 10;
 
+//    private float enterPos;
+    private boolean entering;
+
     private int direction = 1;
 
     public static final int START_HEIGHT = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*4;
@@ -20,7 +23,8 @@ public class Swarm {
     public double sideWidth;
 //    Enemy[][] members;
     public Array<Enemy> members;
-    public Array<Bullet> bullets;
+    public Bullet[] bullets;
+    int numBullets;
 
 
     private float movePeriod;
@@ -29,19 +33,25 @@ public class Swarm {
 
 
     public Swarm(int[][] level){
+        entering = true;
+//        enterPos = -SpaceInvaders.WIDTH;
+
 //        members = new Enemy[ ROWS ][ COLS ];
         members = new Array(false, ROWS*COLS);
-        bullets = new Array(false, 0);
+        bullets = new Bullet[20];
+        for(int i = bullets.length-1; i >= 0; --i)
+            bullets[i] = new Bullet();
+        numBullets = 0;
+
         levelArrayToSwarm(level);
 
         int swarmWidth = (COLS*3*SpaceInvaders.UNIT) + (COLS-1)*SpaceInvaders.UNIT;
         sideWidth = (SpaceInvaders.WIDTH-swarmWidth)/2.0;
 
-        updateSpeed();
+        updateSpeedAndShootChance();
     }
 
     public void update(float delta){
-        //shoot();
 
         timeSinceMove += delta;
         while(timeSinceMove > movePeriod) {
@@ -50,31 +60,45 @@ public class Swarm {
             boolean gameOver = move();
 
             for(int i = 0; i < members.size; ++i){
-                if(Math.random() < shootChance){
-                    bullets.add(members.get(i).shoot());
+                if(numBullets < bullets.length  &&  Math.random() < shootChance){
+                    members.get(i).shoot(bullets[numBullets]);
+                    ++numBullets;
                 }
             }
 
             timeSinceMove -= movePeriod;
         }
 
-        for(int i = 0; i < bullets.size; ++i){
-            bullets.get(i).update();
+        for(int i = 0; i < numBullets; ++i){
+            bullets[i].update();
         }
-
     }
 
     public void draw(SpriteBatch batch){
-
         for(int i = 0; i < members.size; ++i){
             members.get(i).draw(batch);
         }
+    }
 
+    public void draw(SpriteBatch batch, float xRel, float yRel){
+        for(int i = 0; i < members.size; ++i) {
+            members.get(i).draw(xRel, yRel, batch);
+        }
     }
 
     public void drawBullets(ShapeRenderer sr){
-        for(int i = 0; i < bullets.size; ++i) {
-            bullets.get(i).draw(sr);
+        for(int i = 0; i < numBullets; ++i) {
+            bullets[i].draw(sr);
+        }
+    }
+
+    public void removeBullet(int index){
+        // swap bullets[index] with bullets[numBullets-1]
+        if(numBullets > 0 && numBullets < bullets.length) {
+            Bullet temp = bullets[index];
+            bullets[index] = bullets[numBullets - 1];
+            bullets[numBullets - 1] = temp;
+            --numBullets;
         }
     }
 
@@ -104,6 +128,8 @@ public class Swarm {
 
 
     public void levelArrayToSwarm(int[][] level){
+        entering = true;
+//        enterPos = -SpaceInvaders.WIDTH;
 
         for(int row = 0; row < ROWS; ++row){
             for(int col = 0; col < COLS; ++col){
@@ -128,11 +154,20 @@ public class Swarm {
 
     }
 
-    public void updateSpeed(){
+    public void updateSpeedAndShootChance(){
         float percent = (float)(members.size-1)/(float)(ROWS*COLS);
 //        float percentSqr = percent*percent;
         float percentSqrt = (float)Math.sqrt((double)percent);
         movePeriod = 0.1f + percentSqrt*0.9f;
+        shootChance = 0.01f + (1f - percentSqrt)*0.1f;
+    }
+
+    public void setEntering(boolean entering){
+        this.entering = entering;
+    }
+
+    public int getNumBullets(){
+        return numBullets;
     }
 
 

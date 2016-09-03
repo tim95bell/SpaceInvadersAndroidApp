@@ -19,10 +19,20 @@ import com.timbell.spaceinvaders.GameScreens.MenuScreen;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
 import com.timbell.spaceinvaders.Input.InputHandler;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
+import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 
 import static com.timbell.spaceinvaders.Assets.AssetManager.*;
 
 public class SpaceInvaders extends Game {
+
+	// TODO: get rid of bgBatch, and bgSr. only one sb and sr is needed. it is the viewports that are needed.
+
+	// TODO: thinking of making the darkened screen take up all the screen, and show the edges of the actual game with a white bar on each side
+	// (to show the edge of where you can go. and then have everything happen withing the actual game part of the screen, that is theright aspect ratio.
+	// except have bullets and particles go outside the screen.
+	// could get rid of the gameport as now, and just have a normal one that takes up the whole screen. and inforce it myself. by having
+	// xOff and yOff. so instead of being "x = width/2;" it would be "x = xOff + width/2;".
+	// xOff or yOff would be 0, and the other would be 0 if the aspect ratio is perfect, otherwise it would be some positive value.
 
 
 	// STATIC
@@ -34,6 +44,7 @@ public class SpaceInvaders extends Game {
 
 	public static final int UNIT = 12;
 	public static final int LOSE_HEIGHT = UNIT*6;
+
 
 	// CLASS
 	private int SIDE_BAR_WIDTH;
@@ -52,8 +63,8 @@ public class SpaceInvaders extends Game {
 	private InputHandler inputHandler;
 
 //	private FitViewport gameport;
-	/*private*/public ScalingViewport gameport;
-	/*private*/public FillViewport bgport;
+	public ScalingViewport gameport;
+	public FillViewport bgport;
 
 	@Override
 	public void create () {
@@ -107,6 +118,8 @@ public class SpaceInvaders extends Game {
 
 		// Init Assets
 		AssetManager.init();
+		// Init Particle Effect Pool
+		ParticleEffectPool.init();
 
 		Gdx.gl.glClearColor(1, 0, 0, 1);
 	}
@@ -119,21 +132,21 @@ public class SpaceInvaders extends Game {
 		screen.render(Gdx.graphics.getDeltaTime());
 
 		//TEST
-		int l = gameport.getLeftGutterWidth();
-		int r = gameport.getRightGutterWidth();
-		bgport.apply();
-
-		ShapeRenderer normalSr = new ShapeRenderer();
+//		int l = gameport.getLeftGutterWidth();
+//		int r = gameport.getRightGutterWidth();
+//		bgport.apply();
+//
+//		ShapeRenderer normalSr = new ShapeRenderer();
 
 		// darken sidebars if screen is not 16:9
 		//NOTE: need to use normalSr that isnt being stretched, it was messing up the widths, the measurments were acctually right
-		Gdx.gl.glEnable(GL20.GL_BLEND);
-		normalSr.begin(ShapeRenderer.ShapeType.Filled);
-		normalSr.setColor(0f, 0f, 0f, 0.5f);
-		normalSr.rect(0, 0, SIDE_BAR_WIDTH, HEIGHT);
-		normalSr.rect(Gdx.graphics.getWidth() - SIDE_BAR_WIDTH, 0, SIDE_BAR_WIDTH, HEIGHT);
-		normalSr.end();
-		Gdx.gl.glDisable(GL20.GL_BLEND);
+//		Gdx.gl.glEnable(GL20.GL_BLEND);
+//		normalSr.begin(ShapeRenderer.ShapeType.Filled);
+//		normalSr.setColor(0f, 0f, 0f, 0.5f);
+//		normalSr.rect(0, 0, SIDE_BAR_WIDTH, HEIGHT);
+//		normalSr.rect(Gdx.graphics.getWidth() - SIDE_BAR_WIDTH, 0, SIDE_BAR_WIDTH, HEIGHT);
+//		normalSr.end();
+//		Gdx.gl.glDisable(GL20.GL_BLEND);
 	}
 
 	@Override

@@ -35,13 +35,30 @@ public class ParticleEffect {
         this.particles = null;
     }
 
+    // for pool
+    public ParticleEffect(int manyParticles){
+        this.dead = false;
+        this.color = null;
+        this.particles = new Particle[manyParticles];
+        for(int i = 0; i < manyParticles; ++i)
+            particles[i] = new Particle();
+    }
+
+    public void reset(float yVel, int x, int y, int spread, Color color){
+        for(int i = 0; i < particles.length; ++i)
+            particles[i].reset(yVel, x, y, spread);
+        this.color = color;
+        this.dead = false;
+        timeElapsed = 0;
+    }
+
     public ParticleEffect(float yVel, int x, int y, int spread, int manyParticles, Color color){
         particles = new Particle[manyParticles];
         this.color = new Color(color);
         this.dead = false;
 
         for(int i = 0; i < manyParticles; ++i){
-            particles[i] = new Particle(this, yVel, x, y, spread);
+            particles[i] = new Particle(yVel, x, y, spread);
         }
     }
 
@@ -55,20 +72,21 @@ public class ParticleEffect {
         Array<Particle> insideArr = new Array<Particle>(false, 0);
         ParticleEffect outside = new ParticleEffect();
         ParticleEffect inside = new ParticleEffect();
+        float scale = sym.getWidth()/symSize;
         for(int i = 0; i < manyParticles; ++i){
             Vector2 loc = new Vector2( (float)(x + (Math.random()*size)), (float)(y + (Math.random()*size)));
 
             // if loc is inside sym
             if(loc.x > symX && loc.x < symX+symSize && loc.y > symY && loc.y < symY+symSize) {
                 Color color = new Color();
-                Color.rgba8888ToColor(color, pMap.getPixel((int) (loc.x - symX), (int) (loc.y - symY) ));
+                Color.rgba8888ToColor(color, pMap.getPixel((int) (scale*(loc.x - symX)), (int) (scale*(loc.y - symY)) ));
                 if (color.equals(Color.WHITE))
-                    insideArr.add(new Particle(inside, loc.x, loc.y));
+                    insideArr.add(new Particle(loc.x, loc.y));
                 else
-                    outsideArr.add(new Particle(outside, loc.x, loc.y));
+                    outsideArr.add(new Particle(loc.x, loc.y));
             }
             else{
-                outsideArr.add(new Particle(outside, loc.x, loc.y));
+                outsideArr.add(new Particle(loc.x, loc.y));
             }
         }
 
@@ -85,7 +103,7 @@ public class ParticleEffect {
         for(int i = 0; i < particles.length; ++i) {
             particles[i] = pArr.get(i);
         }
-        this.color = new Color(color);
+        this.color = color;
         this.dead = false;
     }
 
@@ -102,9 +120,9 @@ public class ParticleEffect {
 
     public void draw(ShapeRenderer sr){
         if(LIFETIME-timeElapsed < 2.5)
-            color.set(color.r, color.g, color.b, (LIFETIME-timeElapsed)/2.5f );
-
-        sr.setColor(color);
+            sr.setColor( color.r, color.g, color.b, (LIFETIME-timeElapsed)/2.5f );
+        else
+            sr.setColor(color);
         for(int i = 0; i < particles.length; ++i){
             particles[i].draw(sr);
         }

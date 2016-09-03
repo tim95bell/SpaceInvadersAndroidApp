@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.Assets.AssetManager;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
+import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
@@ -21,41 +22,60 @@ public class Player {
     private final int width = (int)(SpaceInvaders.UNIT*3.5);
     private final int height = (int)(SpaceInvaders.UNIT*2.5);
 
+    // these are relative to loc
+    private Rectangle[] rects;
+
     private Vector2 loc;
     private float xAcc, xVel;
     private float xAccelerometerVel;
 
-    private int maxBullets = 20;
-    public Array<Bullet> bullets;
+    private boolean entering;
+
+    public Bullet[] bullets;
+    private int numBullets;
 
     public Player(){
+        this.entering = false;
         this.loc = new Vector2(SpaceInvaders.WIDTH/2, SpaceInvaders.UNIT*2);
+
+        int w = width;
+        this.rects = new Rectangle[3];
+        rects[0] = new Rectangle(0, 0, w, w/3);
+        rects[1] = new Rectangle(w/2f - w/8f, w/3f, w/4f, w/5f);
+        rects[2] = new Rectangle(w/2f-w/26f, w/3f + w/5f, w/13f, w/13f);
 
         this.xAcc = 0;
         this.xVel = 0;
         this.xAccelerometerVel = 0;
 
-        this.bullets = new Array<Bullet>(true, 0);
+        this.bullets = new Bullet[]{new Bullet(), new Bullet()};
+        this.numBullets = 0;
     }
 
-    public void draw(SpriteBatch sb){
+    public void draw(ShapeRenderer sr){
 
-        sb.setColor(AssetManager.playerColor);
-        sb.draw(AssetManager.playerImage, loc.x, loc.y, width, height);
+//        sb.setColor(AssetManager.playerColor);
+//        sb.draw(AssetManager.playerImage, loc.x, loc.y, width, height);
+
+        sr.setColor(AssetManager.playerColor);
+
+        for(int i = 0; i < rects.length; ++i) {
+            sr.rect(loc.x + rects[i].getX(), loc.y + rects[i].getY(), rects[i].getWidth(), rects[i].getHeight());
+        }
 
     }
 
     public void drawBullets(ShapeRenderer sr){
-        for(int i = 0; i < bullets.size; ++i) {
-            bullets.get(i).draw(sr);
+        for(int i = 0; i < numBullets; ++i){
+            bullets[i].draw(sr);
         }
     }
 
     public void update() {
         move();
 
-        for(int i = 0; i < bullets.size; ++i) {
-            bullets.get(i).update();
+        for(int i = 0; i < numBullets; ++i){
+            bullets[i].update();
         }
     }
 
@@ -100,24 +120,43 @@ public class Player {
         xAcc = 0;
 
         if(loc.x+width > SpaceInvaders.WIDTH)
-            loc.x = SpaceInvaders.WIDTH-width;
+            loc.x = SpaceInvaders.WIDTH - width;
         else if(loc.x < 0)
             loc.x = 0;
 
     }
 
     public void shoot(){
-        if( bullets.size < maxBullets ){
-            bullets.add( new Bullet(bullets, (int)loc.x+width/2-(5/2), (int)loc.y+height, 5, 10, /*2*/8, AssetManager.playerColor) );
+        if( numBullets == 0 && !entering ){
+            bullets[0].reset((int)loc.x+width/2-(5/2), (int)loc.y+height, 5, 10, /*2*/8, AssetManager.playerColor);
+            ++numBullets;
+        }
+    }
+
+    public void removeBullet(int index){
+        // swap bullets[index] with bullets[numBullets-1]
+        if(numBullets > 0 && numBullets < 3) {
+            Bullet temp = bullets[index];
+            bullets[index] = bullets[numBullets - 1];
+            bullets[numBullets - 1] = temp;
+            --numBullets;
         }
     }
 
     public ParticleEffect hit(){
-        return new ParticleEffect(0, (int)loc.x+width/2, (int)loc.y+height/2, 10, 75, AssetManager.playerColor);
+        ParticleEffect answer = ParticleEffectPool.getLarge();
+        answer.reset(0, (int)loc.x+width/2, (int)loc.y+height/2, 10, AssetManager.playerColor);
+        return answer;
     }
 
-    public Rectangle getRect(){
-        return new Rectangle((int)loc.x, (int)loc.y, width ,height);
+    // TODO: stop these news
+    public Rectangle[] getRects(){
+        Rectangle[] answer = new Rectangle[]{new Rectangle(rects[0]), new Rectangle(rects[1]), new Rectangle(rects[2])};
+        for(int i = 0; i < rects.length; ++i){
+            answer[i].x += loc.x;
+            answer[i].y += loc.y;
+        }
+        return answer;
     }
 
     public float getX(){
@@ -134,6 +173,14 @@ public class Player {
 
     public int getHeight(){
         return height;
+    }
+
+    public int getNumBullets(){
+        return numBullets;
+    }
+
+    public void setEntering(boolean entering){
+        this.entering = entering;
     }
 
 }

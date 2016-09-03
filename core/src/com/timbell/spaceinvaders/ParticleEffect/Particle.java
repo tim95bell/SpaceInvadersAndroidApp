@@ -10,9 +10,8 @@ import com.timbell.spaceinvaders.SpaceInvaders;
 public class Particle{
     private Vector2 loc;
     private Vector2 vel;
-    private ParticleEffect owner;
 
-    public Particle(ParticleEffect owner, float yVel, float x, float y, float spread){
+    public Particle(float yVel, float x, float y, float spread){
         loc = new Vector2( (float)(x + (Math.random()*spread) - spread/2),
                 (float)(y + (Math.random()*spread) - spread/2));
         vel = new Vector2();
@@ -20,18 +19,27 @@ public class Particle{
         vel.x *= (float)(Math.random()*ParticleEffect.SPEED);
         vel.y *= (float)(Math.random()*ParticleEffect.SPEED);
         vel.y += yVel*-0.5f;
-        this.owner = owner;
     }
 
-     public Particle(ParticleEffect owner, float x, float y){
+    // for pool
+    public Particle(){
+        this.loc = new Vector2();
+        this.vel = new Vector2();
+    }
+
+    public void reset(float yVel, float x, float y, float spread){
+        loc.set( (float)(x + (Math.random()*spread) - spread/2), (float)(y + (Math.random()*spread) - spread/2) );
+        vel.setToRandomDirection();
+        vel.x *= (float)(Math.random()*ParticleEffect.SPEED);
+        vel.y *= (float)(Math.random()*ParticleEffect.SPEED);
+        vel.y += yVel;
+    }
+
+     public Particle(float x, float y){
         loc = new Vector2(x, y);
-        this.owner = owner;
         vel = new Vector2( (float)Math.random()*0.4f-0.2f, (float)Math.random()*0.4f-0.2f );
     }
 
-    public void setOwner(ParticleEffect owner){
-        this.owner = owner;
-    }
 
     public void update(){
         //gravity
