@@ -2,7 +2,11 @@ package com.timbell.spaceinvaders.Entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -20,7 +24,9 @@ import com.badlogic.gdx.math.Rectangle;
 public class Player {
 
     private final int width = (int)(SpaceInvaders.UNIT*3.5);
-    private final int height = (int)(SpaceInvaders.UNIT*2.5);
+    private final int height = (int)(SpaceInvaders.UNIT*2);
+
+    private final Color color = new Color(1.0f, 1.0f, 1.0f, 1f);
 
     // these are relative to loc
     private Rectangle[] rects;
@@ -34,15 +40,25 @@ public class Player {
     public Bullet[] bullets;
     private int numBullets;
 
-    public Player(){
-        this.entering = false;
-        this.loc = new Vector2(SpaceInvaders.WIDTH/2, SpaceInvaders.UNIT*2);
+    private int lives;
+    private int score;
 
-        int w = width;
-        this.rects = new Rectangle[3];
-        rects[0] = new Rectangle(0, 0, w, w/3);
-        rects[1] = new Rectangle(w/2f - w/8f, w/3f, w/4f, w/5f);
-        rects[2] = new Rectangle(w/2f-w/26f, w/3f + w/5f, w/13f, w/13f);
+    private BitmapFont font;
+    private GlyphLayout layout;
+
+    public Player(){
+        this.lives = 3;
+        this.entering = false;
+        this.loc = new Vector2(SpaceInvaders.WIDTH/2 - width/2f, SpaceInvaders.UNIT*2);
+
+        this.rects = new Rectangle[] {
+//            new Rectangle(0, 0, width, width / 3),
+//            new Rectangle(width / 2f - width / 8f, width / 3f, width / 4f, width / 5f),
+//            new Rectangle(width / 2f - width / 26f, width / 3f + width / 5f, width / 13f, width / 13f)
+            new Rectangle(0, 0, width, (5f/8f)*height),
+            new Rectangle(width*0.5f - width*(3f/13f)/2f, (5f/8f)*height, width*(3f/13f), (2f/8f)*height),
+            new Rectangle(width*0.5f - width*(1f/13f)/2f, (7f/8f)*height, width*(1f/13f), (1f/8f)*height)
+        };
 
         this.xAcc = 0;
         this.xVel = 0;
@@ -50,14 +66,19 @@ public class Player {
 
         this.bullets = new Bullet[]{new Bullet(), new Bullet()};
         this.numBullets = 0;
+
+        this.font = new BitmapFont();
+        font.getData().setScale(1.1f);
+        this.layout = new GlyphLayout();
+    }
+
+    // TODO: complete reset
+    public void reset(){
+
     }
 
     public void draw(ShapeRenderer sr){
-
-//        sb.setColor(AssetManager.playerColor);
-//        sb.draw(AssetManager.playerImage, loc.x, loc.y, width, height);
-
-        sr.setColor(AssetManager.playerColor);
+        sr.setColor(color);
 
         for(int i = 0; i < rects.length; ++i) {
             sr.rect(loc.x + rects[i].getX(), loc.y + rects[i].getY(), rects[i].getWidth(), rects[i].getHeight());
@@ -71,11 +92,41 @@ public class Player {
         }
     }
 
-    public void update() {
-        move();
+    public void drawLives(ShapeRenderer sr) {
+        float scale = 0.5f;
+        float x = SpaceInvaders.UNIT;
+        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*(scale/2) - height*scale;
+        sr.setColor(Color.WHITE);
+        for(int i = 0; i < lives; ++i){
+            for(int j = 0; j < rects.length; ++j) {
+                sr.rect(x + rects[j].getX()*scale, y + rects[j].getY()*scale, rects[j].getWidth()*scale, rects[j].getHeight()*scale);
+            }
+            x += width*scale + SpaceInvaders.UNIT;
+        }
+
+
+    }
+
+    public void drawScore(SpriteBatch sb){
+        float scale = 0.5f;
+        float x = (width * scale + SpaceInvaders.UNIT) * lives + SpaceInvaders.UNIT/2f;
+        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2);
+        if(lives > 0) {
+            //livesText
+            font.draw(sb, "x " + lives, x, y, 20, 0, false);
+        }
+        //score
+        layout.setText(font, "Score: " + score);
+        x = SpaceInvaders.WIDTH/2 - layout.width/2;
+        font.draw(sb, layout, x, y);
+
+    }
+
+    public void update(float delta) {
+        move(delta);
 
         for(int i = 0; i < numBullets; ++i){
-            bullets[i].update();
+            bullets[i].update(delta);
         }
     }
 
@@ -87,7 +138,7 @@ public class Player {
         xVel *= force;
     }
 
-    public void move(){
+    public void move(float delta){
         xAccelerometerVel = Gdx.input.getAccelerometerY();
 
         //apply friction
@@ -95,7 +146,7 @@ public class Player {
 
         //apply acceleration and velocity
         xVel += xAcc;
-        loc.x += xVel;
+        loc.x += xVel * delta*60;
 
         //apoly accelerometer velocity
         xVel += xAccelerometerVel;
@@ -128,7 +179,7 @@ public class Player {
 
     public void shoot(){
         if( numBullets == 0 && !entering ){
-            bullets[0].reset((int)loc.x+width/2-(5/2), (int)loc.y+height, 5, 10, /*2*/8, AssetManager.playerColor);
+            bullets[0].reset((int) loc.x + width / 2 - (5 / 2), (int) loc.y + height, 5, 10, /*2*/8, color);
             ++numBullets;
         }
     }
@@ -144,19 +195,23 @@ public class Player {
     }
 
     public ParticleEffect hit(){
+        if(lives > 0)
+            --lives;
         ParticleEffect answer = ParticleEffectPool.getLarge();
-        answer.reset(0, (int)loc.x+width/2, (int)loc.y+height/2, 10, AssetManager.playerColor);
+        answer.reset(0, (int)loc.x+width/2, (int)loc.y+height/2, 10, color);
         return answer;
     }
 
     // TODO: stop these news
-    public Rectangle[] getRects(){
-        Rectangle[] answer = new Rectangle[]{new Rectangle(rects[0]), new Rectangle(rects[1]), new Rectangle(rects[2])};
-        for(int i = 0; i < rects.length; ++i){
-            answer[i].x += loc.x;
-            answer[i].y += loc.y;
+    public Rectangle[] getRects(Rectangle[] outRects){
+        outRects[0].set(rects[0]);
+        outRects[1].set(rects[1]);
+        outRects[2].set(rects[2]);
+        for(int i = 0; i < outRects.length; ++i){
+            outRects[i].x += loc.x;
+            outRects[i].y += loc.y;
         }
-        return answer;
+        return outRects;
     }
 
     public float getX(){
@@ -181,6 +236,17 @@ public class Player {
 
     public void setEntering(boolean entering){
         this.entering = entering;
+    }
+
+    public boolean isDead(){
+        return lives <= 0;
+    }
+    public int getScore(){
+        return score;
+    }
+
+    public void addToScore(int val){
+        score += val;
     }
 
 }

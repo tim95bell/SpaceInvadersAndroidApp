@@ -3,22 +3,33 @@ package com.timbell.spaceinvaders;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.timbell.spaceinvaders.Assets.AssetManager;
+import com.timbell.spaceinvaders.Collision.Collision;
+import com.timbell.spaceinvaders.Entities.EnemyOne;
+import com.timbell.spaceinvaders.Entities.EnemyThree;
+import com.timbell.spaceinvaders.Entities.EnemyTwo;
 import com.timbell.spaceinvaders.Entities.Player;
+import com.timbell.spaceinvaders.GameScreens.GameOverScreen;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.GameScreens.MenuScreen;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
+import com.timbell.spaceinvaders.GameScreens.Screen;
 import com.timbell.spaceinvaders.Input.InputHandler;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
+import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 
 import static com.timbell.spaceinvaders.Assets.AssetManager.*;
@@ -38,12 +49,16 @@ public class SpaceInvaders extends Game {
 	// STATIC
 	public static final int MENU_STATE = 0;
 	public static final int PLAY_STATE = 1;
+	public static final int GAMEOVER_STATE = 2;
 
 	public static final int WIDTH = 640;
 	public static final int HEIGHT = 360;
 
 	public static final int UNIT = 12;
 	public static final int LOSE_HEIGHT = UNIT*6;
+
+	public static Texture BACKGROUND;
+	public static Texture SPRITE_SHEET;
 
 
 	// CLASS
@@ -72,7 +87,7 @@ public class SpaceInvaders extends Game {
 //		Gdx.graphics.setContinuousRendering(false);
 		Gdx.graphics.setContinuousRendering(true);
 
-		AssetManager.init();
+		initAssets();
 
 		// Camera setups
 		cam = new OrthographicCamera(WIDTH, HEIGHT);
@@ -106,10 +121,15 @@ public class SpaceInvaders extends Game {
 		bgSr.setProjectionMatrix(bgCam.combined);
 
 		// Screens setup
-		screens = new GameScreen[2];
+		Player p1 = new Player();
+		Array<ParticleEffect> particleEffects = new Array<ParticleEffect>(false, 2);
+		Collision collision = new Collision(p1, particleEffects);
+		screens = new GameScreen[3];
 		currentState = MENU_STATE;
-		screens[MENU_STATE] = new MenuScreen(this);
-		screens[PLAY_STATE] = null;
+		screens[MENU_STATE] = new MenuScreen(this, p1, particleEffects, collision);
+		screens[PLAY_STATE] = new PlayScreen(this, p1, particleEffects, collision);
+		screens[GAMEOVER_STATE] = new GameOverScreen(this, p1, particleEffects, collision);
+		screens[currentState].init();
 		setScreen(screens[currentState]);
 
 		// InputHandler setup
@@ -122,6 +142,17 @@ public class SpaceInvaders extends Game {
 		ParticleEffectPool.init();
 
 		Gdx.gl.glClearColor(1, 0, 0, 1);
+	}
+
+	public void initAssets(){
+		BACKGROUND = new Texture("sunset6.png");
+		SPRITE_SHEET = new Texture("spriteSheet2.png");
+		EnemyOne.IMAGE_ONE = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 0, 0, 12, 8);
+		EnemyOne.IMAGE_TWO = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 12, 0, 12, 8);
+		EnemyTwo.IMAGE_ONE = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 24, 0, 11, 8);
+		EnemyTwo.IMAGE_TWO = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 35, 0, 11, 8);
+		EnemyThree.IMAGE_ONE = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 0, 8, 8, 8);
+		EnemyThree.IMAGE_TWO = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 8, 8, 8, 8);
 	}
 
 	@Override
@@ -213,19 +244,46 @@ public class SpaceInvaders extends Game {
 //		}
 //	}
 
-	public void changeToPlayState(Player p1){
-		screens[PLAY_STATE] = new PlayScreen(this, cam, p1);
-		screens[currentState].dispose();
-		currentState = PLAY_STATE;
+	public void changeScreen(int screen){ //Player p1, int screen){
+		if(screen < 0 || screen > 3)
+			return;
+
+//		if(screen == MENU_STATE)
+//			screens[screen] = new MenuScreen(this, p1);
+//		else if(screen == PLAY_STATE)
+//			screens[screen] = new PlayScreen(this, p1);
+//		else if(screen == GAMEOVER_STATE)
+//			screens[screen] = new GameOverScreen(this, p1);
+
+//		screens[currentState].dispose();
+		// TODO: should i dispose some things on the screen being switched out, then re make them on init?
+		currentState = screen;
+		inputHandler.setScreen(screens[currentState]);
+		screens[currentState].init();
 		setScreen(screens[currentState]);
+
 	}
 
-	public void changeToMenuState(){
-		screens[MENU_STATE] = new MenuScreen(this);
-		screens[currentState].dispose();
-		currentState = MENU_STATE;
-		setScreen(screens[currentState]);
-	}
+//	public void changeToPlayState(Player p1){
+//		screens[PLAY_STATE] = new PlayScreen(this, p1);
+//		screens[currentState].dispose();
+//		currentState = PLAY_STATE;
+//		setScreen(screens[currentState]);
+//	}
+//
+//	public void changeToMenuState(){
+//		screens[MENU_STATE] = new MenuScreen(this, p1);
+//		screens[currentState].dispose();
+//		currentState = MENU_STATE;
+//		setScreen(screens[currentState]);
+//	}
+//
+//	public void changeToGameOverState(Player p1){
+//		screens[GAMEOVER_STATE] = new GameOverScreen(this, p1);
+//		screens[currentState].dispose();
+//		currentState = GAMEOVER_STATE;
+//		setScreen(screens[currentState]);
+//	}
 
 
 	public void calculateSideBarWidth(int width, int height){
@@ -253,6 +311,15 @@ public class SpaceInvaders extends Game {
 //			SIDE_BAR_WIDTH = 0;
 
 		System.out.println(SIDE_BAR_WIDTH);
+	}
+
+	public static void mix(Color from, Color too, float percent, Color outColor){
+		outColor.set(
+				(1f - percent) * from.r + percent * too.r,
+				(1f - percent) * from.g + percent * too.g,
+				(1f - percent) * from.b + percent * too.b,
+				(1f - percent) * from.a + percent * too.a
+		);
 	}
 
 

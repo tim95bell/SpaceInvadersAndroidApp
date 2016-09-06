@@ -26,7 +26,7 @@ public class ParticleEffectPool {
     public static void free(ParticleEffect pe){
         if(pe.particles.length == SMALL_SIZE)
             smallEffect.add(pe);
-        else
+        else if(pe.particles.length == LARGE_SIZE)
             largeEffect.add(pe);
     }
 

@@ -3,40 +3,75 @@ package com.timbell.spaceinvaders.Collision;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.Entities.Bullet;
+import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Enemy;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.Entities.Swarm;
+import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
 /**
- * Created by timbell on 1/09/16.
+ * Created by timbell on 6/09/16.
  */
-public class PlayCollision {
+public class Collision {
 
-    private Array<Enemy> enemies;
+    // TODO: instead of havving new particle effects array and returning it, i could just add them straight to particle effects here, as it is a refferance to the Array anyway
+
+    // objects used by all
     private Player p1;
-    private Bullet[] playerBullets, enemyBullets;
-    private Array<ParticleEffect> particleEffects;
-    private Swarm swarm;
-
     private Rectangle[] recievePlayerRectangles;
-
+    private Bullet[] playerBullets;
+    private Array<ParticleEffect> particleEffects;
     private Array<ParticleEffect> newParticleEffects;
 
-    public PlayCollision(Swarm swarm, Player p1, Array<ParticleEffect> particleEffects){
-        this.swarm = swarm;
-        this.enemies = swarm.members;
+    // objects used by MenuScreen only
+    private GameScreen menuScreen;
+    private Array<Button> menuScreenButtons;
+
+    // objects used by GameOverScreen only
+    private GameScreen gameOverScreen;
+    private Array<Button> gameOverScreenButtons;
+
+    // objects used by PlayScreen only
+    private GameScreen playScreen;
+    private Swarm swarm;
+    private Array<Enemy> enemies;
+    private Bullet[] enemyBullets;
+
+    public Collision(Player p1, Array<ParticleEffect> particleEffects){
         this.p1 = p1;
-        this.playerBullets = p1.bullets;
-        this.enemyBullets = swarm.bullets;
-        this.particleEffects = particleEffects;
-        this.newParticleEffects = new Array<ParticleEffect>(true, 0);
         this.recievePlayerRectangles = new Rectangle[]{ new Rectangle(), new Rectangle(), new Rectangle()};
+        this.playerBullets = p1.bullets;
+
+        this.particleEffects = particleEffects;
+
+        this.newParticleEffects = new Array<ParticleEffect>(false, 2);
     }
 
-    public Array<ParticleEffect> checkCollisions(){
+    public void addPlayScreenObjects(GameScreen screen, Swarm swarm){
+        this.playScreen = screen;
+        this.swarm = swarm;
+        this.enemies = swarm.members;
+        this.enemyBullets = swarm.bullets;
+    }
+
+    public void addMenuScreenObjects(GameScreen screen, Button playButton){ //}, Button settingsButton){
+        this.menuScreen = screen;
+        this.menuScreenButtons = new Array<Button>(false, 1);
+        menuScreenButtons.add(playButton);
+    }
+
+    public void addGameOverScreenObjects(GameScreen screen, Button resetButton, Button homeButton){ //}, Button settingsButton){
+        this.gameOverScreen = screen;
+        this.gameOverScreenButtons = new Array<Button>(false, 2);
+        gameOverScreenButtons.add(resetButton);
+        gameOverScreenButtons.add(homeButton);
+    }
+
+    // PLAY COLLISION
+    public Array<ParticleEffect> checkPlayCollision(){
         newParticleEffects.clear();
 
         //playerBullets and roof/walls, | and enemies | and enemyBullets
@@ -179,8 +214,18 @@ public class PlayCollision {
         return newParticleEffects;
     }
 
+    public Array<ParticleEffect> checkMenuCollision(){
+        checkMenuOrGameOverCollision(SpaceInvaders.MENU_STATE);
+        return newParticleEffects;
+    }
 
-    public Array<ParticleEffect> checkEnteringCollisions(){
+    public Array<ParticleEffect> checkGameOverCollision(){
+        checkMenuOrGameOverCollision(SpaceInvaders.GAMEOVER_STATE);
+        return newParticleEffects;
+    }
+
+    // MENU AND GAME_OVER COLLISION
+    public Array<ParticleEffect> checkMenuOrGameOverCollision(int state){
         newParticleEffects.clear();
 
         //playerBullets and roof/walls
@@ -195,7 +240,7 @@ public class PlayCollision {
             }
         }
 
-        //particles and player, bounds
+        //particles and buttons, player, bounds, sheilds
         for(int i = 0; i < particleEffects.size; ++i){
             Particle[] particles = particleEffects.get(i).particles;
 
@@ -213,17 +258,72 @@ public class PlayCollision {
 
                 //bounds
                 particles[p].bounds();
+
+                //menu buttons
+                if(state == SpaceInvaders.MENU_STATE) {
+                    for (int j = 0; j < menuScreenButtons.size; ++j) {
+                        Button button = menuScreenButtons.get(j);
+                        // looks awesome without visible
+                        if (button.visible && button.getRect().contains(pX, pY)) {
+                            particles[p].bounce(button.getX(), button.getY(), (int) button.getSize(), (int) button.getSize());
+                        }
+                    }
+                }
+                else if(state == SpaceInvaders.GAMEOVER_STATE) {
+                    //gameOver buttons
+                    for (int j = 0; j < gameOverScreenButtons.size; ++j) {
+                        Button button = gameOverScreenButtons.get(j);
+                        // looks awesome without visible
+                        if (button.visible && button.getRect().contains(pX, pY)) {
+                            particles[p].bounce(button.getX(), button.getY(), (int) button.getSize(), (int) button.getSize());
+                        }
+                    }
+                }
+
+                //sheilds
+
             }
+
+        }
+
+        numBullets = p1.getNumBullets();
+        for(int i = numBullets-1; i >= 0; --i) {
+            Rectangle bulletRect = playerBullets[i].getRect();
+            // TODO: fic up what happens if each button is hit
+
+            // menu buttons
+            if(state == SpaceInvaders.MENU_STATE) {
+                for (int j = 0; j < menuScreenButtons.size; ++j) {
+                    Button button = menuScreenButtons.get(j);
+                    if (button.visible && bulletRect.overlaps(button.getRect())) {
+                        newParticleEffects.addAll(button.hit(), 0, 2);
+                        newParticleEffects.add(playerBullets[i].hit());
+                        p1.removeBullet(i);
+                        if (button.getType() == Button.ButtonSymbol.PLAY || button.getType() == Button.ButtonSymbol.RETRY)
+                            menuScreen.changeScreen(SpaceInvaders.PLAY_STATE);
+                        else if (button.getType() == Button.ButtonSymbol.EXIT)
+                            menuScreen.changeScreen(SpaceInvaders.MENU_STATE);
+                    }
+                }
+            }
+            else if(state == SpaceInvaders.GAMEOVER_STATE) {
+                // gameOver buttons
+                for (int j = 0; j < gameOverScreenButtons.size; ++j) {
+                    Button button = gameOverScreenButtons.get(j);
+                    if (button.visible && bulletRect.overlaps(button.getRect())) {
+                        newParticleEffects.addAll(button.hit(), 0, 2);
+                        newParticleEffects.add(playerBullets[i].hit());
+                        p1.removeBullet(i);
+                        if (button.getType() == Button.ButtonSymbol.PLAY || button.getType() == Button.ButtonSymbol.RETRY)
+                            gameOverScreen.changeScreen(SpaceInvaders.PLAY_STATE);
+                        else if (button.getType() == Button.ButtonSymbol.EXIT)
+                            gameOverScreen.changeScreen(SpaceInvaders.MENU_STATE);
+                    }
+                }
+            }
+
         }
 
         return newParticleEffects;
     }
-
-
-
-
-    //sheilds
-
-    //allBullets and shields
-
 }

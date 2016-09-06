@@ -80,7 +80,7 @@ public class ParticleEffect {
             if(loc.x > symX && loc.x < symX+symSize && loc.y > symY && loc.y < symY+symSize) {
                 Color color = new Color();
                 Color.rgba8888ToColor(color, pMap.getPixel((int) (scale*(loc.x - symX)), (int) (scale*(loc.y - symY)) ));
-                if (color.equals(Color.WHITE))
+                if (color.equals(Color.BLACK))
                     insideArr.add(new Particle(loc.x, loc.y));
                 else
                     outsideArr.add(new Particle(loc.x, loc.y));
@@ -114,7 +114,7 @@ public class ParticleEffect {
             dead = true;
 
         for(int i = 0; i < particles.length; ++i){
-            particles[i].update();
+            particles[i].update(delta);
         }
     }
 

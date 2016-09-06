@@ -14,26 +14,69 @@ import com.timbell.spaceinvaders.ParticleEffect.Particle;
  */
 public class Button {
 
+    private static Texture exitSymbol;
+    private static Texture playSymbol;
+    private static Texture settingsSymbol;
+    private static Texture retrySymbol;
+
+    public static enum ButtonSymbol{
+        EXIT, PLAY, SETTINGS, RETRY
+    }
+
     private float x, y, symX, symY;
+    private Rectangle rect;
     private float size, symSize;
     private Color buttonColor, symbolColor;
     private Texture symbol;
     public boolean visible;
 
+    private ButtonSymbol type;
 
-    public Button(float x, float y, float size, Color buttonColor, Color symbolColor, Texture symbol){
+    // TODO: consider whether this creating and disposing of images is nessisary, good, and will work. think multiple buttons.
+
+
+    public Button(float x, float y, float size, Color buttonColor, Color symbolColor, ButtonSymbol buttonSymbol){
         this.x = x;
         this.y = y;
         this.size = size;
         this.buttonColor = buttonColor;
         this.symbolColor = symbolColor;
-        this.symbol = symbol;
         visible = true;
 
         symX = x + size/6;
         symY = y + size/6;
-        symSize = size - size/3;
+//        symSize = size - size/3;
+        symSize = size/6*4;
+        this.rect = new Rectangle();
+
+        if(buttonSymbol == ButtonSymbol.EXIT){
+            exitSymbol = new Texture("exitSymbol.png");
+            this.symbol = exitSymbol;
+            this.type = ButtonSymbol.EXIT;
+        } else if(buttonSymbol == ButtonSymbol.PLAY){
+            playSymbol = new Texture("playSymbol.png");
+            this.symbol = playSymbol;
+            this.type = ButtonSymbol.PLAY;
+        } else if(buttonSymbol == ButtonSymbol.SETTINGS){
+            settingsSymbol = new Texture("settingsSymbol.png");
+            this.symbol = settingsSymbol;
+            this.type = ButtonSymbol.SETTINGS;
+        } else if(buttonSymbol == ButtonSymbol.RETRY){
+            retrySymbol = new Texture("retrySymbol.png");
+            this.symbol = retrySymbol;
+            this.type = ButtonSymbol.RETRY;
+        }
     }
+
+    // TODO: implement reset
+    public void reset(){
+
+    }
+
+    public void dispose(){
+        symbol.dispose();
+    }
+
 
     public void drawShape(ShapeRenderer sr){
         if(!visible)
@@ -72,13 +115,14 @@ public class Button {
     }
 
     public Rectangle getRect(){
-        return new Rectangle(x, y, size, size);
+        rect.set(x, y, size, size);
+        return rect;
     }
 
     public ParticleEffect[] hit(){
         visible = false;
-//        return ParticleEffect.buttonParticleEffect((int)x, (int)y, (int)size, 10000, buttonColor, symbolColor, x+difference, y+difference, size-(difference*2) );
-        return ParticleEffect.buttonParticleEffect(x, y, size, symX, symY, symSize, 1000, buttonColor, symbolColor, symbol);
+        dispose();
+        return ParticleEffect.buttonParticleEffect(x, y, size, symX, symY, symSize, 4000, buttonColor, symbolColor, symbol);
     }
 
     public float getX(){
@@ -91,6 +135,10 @@ public class Button {
 
     public float getSize(){
         return size;
+    }
+
+    public ButtonSymbol getType(){
+        return type;
     }
 
 

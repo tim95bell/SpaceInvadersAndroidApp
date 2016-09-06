@@ -41,15 +41,15 @@ public class Particle{
     }
 
 
-    public void update(){
+    public void update(float delta){
         //gravity
-        vel.y -= 0.05;
+        vel.y -= 0.05 *delta*60;
         if(vel.y > 10)
             vel.y = 10;
         else if(vel.y < -10)
             vel.y = -10;
 
-        loc.add(vel);
+        loc.add(vel.x * delta*60, vel.y * delta*60);
     }
 
     public void draw(ShapeRenderer sr){

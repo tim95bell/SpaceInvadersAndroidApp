@@ -23,10 +23,9 @@ public abstract class GameScreen implements Screen {
 
     }
 
-    public GameScreen(SpaceInvaders game){
-        this.game = game;
-    }
 
+    public abstract void changeScreen(int screen);
+    public abstract void init();
 
 
     @Override

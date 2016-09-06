@@ -22,6 +22,7 @@ public class Swarm {
 
     public double sideWidth;
 //    Enemy[][] members;
+    // TODO: change members to an array, and make only the bottom one shoot. also instead of deleting them, simply make them dead
     public Array<Enemy> members;
     public Bullet[] bullets;
     int numBullets;
@@ -51,6 +52,11 @@ public class Swarm {
         updateSpeedAndShootChance();
     }
 
+    // TODO: complete reset
+    public void reset(){
+
+    }
+
     public void update(float delta){
 
         timeSinceMove += delta;
@@ -70,7 +76,7 @@ public class Swarm {
         }
 
         for(int i = 0; i < numBullets; ++i){
-            bullets[i].update();
+            bullets[i].update(delta);
         }
     }
 

@@ -16,6 +16,7 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  */
 public class Bullet {
     private int x, y, width, height;
+    private Rectangle rect;
     private float ySpeed;
 
     public Color color;
@@ -33,7 +34,7 @@ public class Bullet {
 //    }
 
     public Bullet(){
-
+        this.rect = new Rectangle();
     }
 
     public void reset(int x, int y, int width, int height, float ySpeed, Color color){
@@ -45,8 +46,8 @@ public class Bullet {
         this.color = color;
     }
 
-    public void update(){
-        y += ySpeed;
+    public void update(float delta){
+        y += ySpeed *delta*60;
     }
 
     public void draw(ShapeRenderer sr){
@@ -80,6 +81,7 @@ public class Bullet {
     }
 
     public Rectangle getRect(){
-        return new Rectangle(x, y, width, height);
+        rect.set(x, y, width, height);
+        return rect;
     }
 }

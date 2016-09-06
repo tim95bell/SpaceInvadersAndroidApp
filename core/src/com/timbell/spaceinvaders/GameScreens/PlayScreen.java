@@ -3,9 +3,11 @@ package com.timbell.spaceinvaders.GameScreens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
+import com.timbell.spaceinvaders.Collision.Collision;
 import com.timbell.spaceinvaders.Collision.PlayCollision;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.Entities.Swarm;
@@ -19,6 +21,9 @@ import static com.timbell.spaceinvaders.Assets.AssetManager.*;
  * Created by timbell on 18/07/16.
  */
 public class PlayScreen extends GameScreen {
+
+    public static final Color BG_COLOR = new Color(0f, 0f, 0f, 0.5f);
+    // TODO: fully implement BG_COLOR and mix
 
     // game
     // game objects
@@ -35,27 +40,48 @@ public class PlayScreen extends GameScreen {
     private boolean entering;
     private float enterPos;
 
+
+
     private Array<ParticleEffect> particleEffects;
 
-    private PlayCollision playCollision;
+    private Collision collision;
 
-    public PlayScreen(SpaceInvaders game, Camera cam, Player p1){
-        super(game);
+    public PlayScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects, Collision collision){
+        this.game = game;
         this.p1 = p1;
-        this.entering = true;
-        this.enterPos = -SpaceInvaders.WIDTH;
-        p1.setEntering(true);
+        this.particleEffects = particleEffects;
+        this.collision = collision;
 
         this.swarm = new Swarm(level1);
 
-        this.particleEffects = new Array<ParticleEffect>(true, 0);
+        collision.addPlayScreenObjects(this, swarm);
 
-        this.playCollision = new PlayCollision(swarm, p1, particleEffects);
+//        this.entering = true;
+//        this.enterPos = -SpaceInvaders.WIDTH;
+//        p1.setEntering(true);
+//
+//        this.swarm = new Swarm(level1);
+//
+//        this.particleEffects = new Array<ParticleEffect>(true, 0);
+//
+//        this.playCollision = new PlayCollision(swarm, p1, particleEffects);
+    }
+
+    public void init(){
+        this.entering = true;
+        this.enterPos = -SpaceInvaders.WIDTH;
+//        p1.setEntering(true);
+        p1.reset();
+        swarm.reset();
     }
 
     public void update(float delta){
-        p1.update();
+
+        p1.update(delta);
         swarm.update(delta);
+
+        if(p1.isDead())
+            game.changeScreen(SpaceInvaders.GAMEOVER_STATE);
 
         for(int i = particleEffects.size-1; i >= 0; --i){
             if(particleEffects.get(i).isDead()) {
@@ -65,21 +91,21 @@ public class PlayScreen extends GameScreen {
             else
                 particleEffects.get(i).update(delta);
         }
-        particleEffects.addAll( playCollision.checkCollisions() );
+        particleEffects.addAll( collision.checkPlayCollision() );
     }
 
     public void draw(){
         // draw background
         game.bgport.apply();
         game.bgBatch.begin();
-        game.bgBatch.draw(background, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+        game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         game.bgBatch.end();
 
         game.gameport.apply();
         // TODO: replase this with jusp changing the texture to be darker
         Gdx.gl.glEnable(GL20.GL_BLEND);
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        game.sr.setColor(0f, 0f, 0f, 0.5f);
+        game.sr.setColor(BG_COLOR);
         game.sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         game.sr.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
@@ -103,6 +129,7 @@ public class PlayScreen extends GameScreen {
         swarm.drawBullets(game.sr);
         // player
         p1.draw(game.sr);
+        p1.drawLives(game.sr);
         game.sr.end();
 
 
@@ -113,6 +140,7 @@ public class PlayScreen extends GameScreen {
             swarm.draw(game.sb);
         else
             swarm.draw(game.sb, enterPos, 0);
+        p1.drawScore(game.sb);
         game.sb.end();
 
 
@@ -130,7 +158,7 @@ public class PlayScreen extends GameScreen {
 
 //        swarm.updateEntering(delta);
 
-        p1.update();
+        p1.update(delta);
 
         for(int i = particleEffects.size-1; i >= 0; --i){
             if(particleEffects.get(i).isDead()) {
@@ -140,8 +168,15 @@ public class PlayScreen extends GameScreen {
             else
                 particleEffects.get(i).update(delta);
         }
-        particleEffects.addAll( playCollision.checkEnteringCollisions() );
+        particleEffects.addAll( collision.checkPlayCollision() );
     }
+
+    public void changeScreen(int screen){
+        if(screen == SpaceInvaders.GAMEOVER_STATE){
+            game.changeScreen(SpaceInvaders.GAMEOVER_STATE);
+        }
+    }
+
 
     //-----------------SCREEN-----------------//
     @Override
