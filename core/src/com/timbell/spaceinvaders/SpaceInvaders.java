@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.timbell.spaceinvaders.Collision.Collision;
 import com.timbell.spaceinvaders.Entities.Button;
@@ -51,6 +52,11 @@ public class SpaceInvaders extends Game {
 	public static final int WIDTH = 640;
 	public static final int HEIGHT = 360;
 
+	public static double xOff = 0;
+	public static double yOff = 0;
+	public static double viewportWidth = SpaceInvaders.WIDTH;
+	public static double viewportHeight = SpaceInvaders.HEIGHT;
+
 	public static final int UNIT = 10;//12;
 
 	public static final int MAX_SCORE  = 3780;
@@ -64,44 +70,49 @@ public class SpaceInvaders extends Game {
 	private int SIDE_BAR_WIDTH;
 
 	public SpriteBatch sb;
-	public SpriteBatch bgBatch;
 	public ShapeRenderer sr;
-	public ShapeRenderer bgSr;
+//	public SpriteBatch bgBatch;
+//	public ShapeRenderer bgSr;
 
 	private int currentState;
 	private GameScreen[] screens;
 
 	private OrthographicCamera cam;
-	private OrthographicCamera bgCam;
+//	private OrthographicCamera bgCam;
 
 	private InputHandler inputHandler;
 
-//	private FitViewport gameport;
-	public ScalingViewport gameport;
-	public FillViewport bgport;
+	public FitViewport gameport;
+//	public ScalingViewport gameport;
+//	public FillViewport bgport;
 
 	private Preferences prefs;
 
 	@Override
 	public void create () {
+		initXOffYOffVpWidthVpHeight();
 		prefs = Gdx.app.getPreferences("HighScore");
 		Gdx.graphics.setContinuousRendering(true);
 
 		initAssets();
 
 		// Camera setups
-		cam = new OrthographicCamera(WIDTH, HEIGHT);
-		cam.translate(WIDTH / 2, HEIGHT / 2);
+		cam = new OrthographicCamera((float)viewportWidth, (float)viewportHeight);
+//		cam = new OrthographicCamera(WIDTH, HEIGHT);
+		cam.translate((float) viewportWidth / 2, (float) viewportHeight / 2);
+//		cam.translate(WIDTH / 2, HEIGHT / 2);
 		cam.update();
 
-		bgCam = new OrthographicCamera(WIDTH, HEIGHT);
-		bgCam.translate(WIDTH / 2, HEIGHT / 2);
-		bgCam.update();
+//		bgCam = new OrthographicCamera(WIDTH, HEIGHT);
+//		bgCam.translate(WIDTH / 2, HEIGHT / 2);
+//		bgCam.update();
 
 		// Viewport Setups
+		gameport = new FitViewport((float)viewportWidth, (float)viewportHeight, cam);
 //		gameport = new FitViewport(WIDTH, HEIGHT, cam);
-		gameport = new ScalingViewport(Scaling.fit, WIDTH, HEIGHT, cam);
-		bgport = new FillViewport(WIDTH, HEIGHT, bgCam);
+//		gameport = new ScalingViewport(Scaling.fit, (float)viewportWidth, (float)viewportHeight, cam);
+//		gameport = new ScalingViewport(Scaling.fit, WIDTH, HEIGHT, cam);
+//		bgport = new FillViewport(WIDTH, HEIGHT, bgCam);
 
 		//calculateSideBarWidth(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -109,14 +120,15 @@ public class SpaceInvaders extends Game {
 		sb = new SpriteBatch();
 		sb.setProjectionMatrix(cam.combined);
 
-		bgBatch = new SpriteBatch();
-		bgBatch.setProjectionMatrix(bgCam.combined);
+//		bgBatch = new SpriteBatch();
+//		bgBatch.setProjectionMatrix(bgCam.combined);
 
 		sr = new ShapeRenderer();
-		sr.setProjectionMatrix(bgCam.combined);
+		sr.setProjectionMatrix(cam.combined);
+//		sr.setProjectionMatrix(bgCam.combined);
 
-		bgSr = new ShapeRenderer();
-		bgSr.setProjectionMatrix(bgCam.combined);
+//		bgSr = new ShapeRenderer();
+//		bgSr.setProjectionMatrix(bgCam.combined);
 
 		// Screens setup
 		Player p1 = new Player();
@@ -137,7 +149,7 @@ public class SpaceInvaders extends Game {
 		// Init Particle Effect Pool
 		ParticleEffectPool.init();
 
-		Gdx.gl.glClearColor(1, 0, 0, 1);
+		Gdx.gl.glClearColor(0, 0, 0, 1);
 	}
 
 	public void initAssets(){
@@ -187,9 +199,9 @@ public class SpaceInvaders extends Game {
 		Button.retrySymbol.dispose();
 
 		sb.dispose();
-		bgBatch.dispose();
+//		bgBatch.dispose();
 		sr.dispose();
-		bgSr.dispose();
+//		bgSr.dispose();
 		for(int i = 0; i < screens.length; ++i)
 			screens[i].dispose();
 	}
@@ -206,8 +218,11 @@ public class SpaceInvaders extends Game {
 
 	@Override
 	public void resize(int width, int height){
-		bgport.update(width, height);
+//		bgport.update(width, height);
+
+		// TODO: do i need to hangle this?
 		gameport.update(width, height);
+//		gameport.update((int)viewportWidth, (int)viewportHeight);
 
 
 //		// TEST
@@ -231,7 +246,9 @@ public class SpaceInvaders extends Game {
 //
 //		cam.update();
 ////		bgCam.update();
-		calculateSideBarWidth(width, height);
+
+
+//		calculateSideBarWidth(width, height);
 	}
 
 	public void changeScreen(int screen){
@@ -278,6 +295,34 @@ public class SpaceInvaders extends Game {
 		prefs.clear();
 		prefs.putInteger("Score", score);
 		prefs.flush();
+	}
+
+	public void initXOffYOffVpWidthVpHeight(){
+		// TODO: extra width is working, now copy same logic into extra height
+		double deviceWidth = Gdx.graphics.getWidth();
+		double deviceHeight = Gdx.graphics.getHeight();
+		double deviceRatio = deviceWidth/deviceHeight;
+		double neededRatio = 16d/9d;
+		if(neededRatio < deviceRatio){
+			// device has extra width
+			double ourWidth = deviceHeight*(16d/9d);
+			double widthScale = deviceWidth/ourWidth;
+			xOff = (deviceWidth - ourWidth)/2d;
+			yOff = 0;
+			viewportWidth = SpaceInvaders.WIDTH * widthScale;
+			System.out.println("extra width");
+		}
+		else if(neededRatio > deviceRatio){
+			// device has extra height
+			double ourHeight = deviceWidth*(9d/16d);
+			double heightScale = deviceHeight/ourHeight;
+			xOff = 0;
+			yOff = (deviceHeight - ourHeight)/2d;
+			viewportWidth = SpaceInvaders.WIDTH;
+			viewportHeight = SpaceInvaders.HEIGHT * heightScale;
+			System.out.println("extra height");
+		}
+
 	}
 
 }

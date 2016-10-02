@@ -165,17 +165,17 @@ public class PlayScreen extends GameScreen {
 
     public void draw(){
         // draw background
-        game.bgport.apply();
-        game.bgBatch.begin();
-            game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
-        game.bgBatch.end();
+//        game.bgport.apply();
+//        game.bgBatch.begin();
+//            game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+//        game.bgBatch.end();
 
         game.gameport.apply();
         // TODO: replase this with jusp changing the texture to be darker
         Gdx.gl.glEnable(GL20.GL_BLEND);
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
             game.sr.setColor(backgroundColor);
-        game.sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+        game.sr.rect(0, 0, (float)SpaceInvaders.viewportWidth, (float)SpaceInvaders.viewportHeight);
         game.sr.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 

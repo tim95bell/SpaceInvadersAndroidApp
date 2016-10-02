@@ -106,11 +106,11 @@ public class MenuScreen extends GameScreen {
         if(state == State.ENTERING)
             buttonTransparancy = transitionTime/transitionPeriod;
 
-        game.bgport.apply();
-        // Draw Background
-        game.bgBatch.begin();
-            game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
-        game.bgBatch.end();
+//        game.bgport.apply();
+//        // Draw Background
+//        game.bgBatch.begin();
+//            game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+//        game.bgBatch.end();
 
         game.gameport.apply(); // to show the actual screen being used, for other screen ratios
         // darken background with a 30% transparent black square
@@ -118,13 +118,18 @@ public class MenuScreen extends GameScreen {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         // TODO: replace this with darkening the texture image
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-            game.sr.setColor(backgroundColor);
-            game.sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+//            game.sr.setColor(backgroundColor);
+            game.sr.setColor(Color.RED);
+//            game.sr.rect(0, 0, (float) SpaceInvaders.WIDTH, (float) SpaceInvaders.HEIGHT);
+            game.sr.rect(0, 0, (float)SpaceInvaders.viewportWidth, (float)SpaceInvaders.viewportHeight);
         game.sr.end();
 
 
 //        game.gameport.apply();
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
+
+
+
             // draw and free particle effects
             for(int i = 0; i < particleEffects.size; ++i) {
                 if(particleEffects.get(i).isDead()) {
@@ -147,6 +152,7 @@ public class MenuScreen extends GameScreen {
         game.sb.end();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
+
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
             // draw player and their bullets
             p1.drawBullets(game.sr);

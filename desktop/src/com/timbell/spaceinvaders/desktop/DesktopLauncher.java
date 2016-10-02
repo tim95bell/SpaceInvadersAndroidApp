@@ -10,8 +10,12 @@ public class DesktopLauncher {
 		config.width = 640;
 		config.height = 360;
 
-//		config.WIDTH = 800;
-//		config.HEIGHT = 360;
+//		config.width = 800;
+//		config.width = 1200;
+//		config.height = 360;
+
+//		config.width = 360;
+//		config.height = 800;
 
 		// ipad 1, 2, and 3
 //		config.WIDTH = 2048/4;
