@@ -2,19 +2,16 @@ package com.timbell.spaceinvaders.Entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
-import com.timbell.spaceinvaders.Assets.AssetManager;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
-import com.timbell.spaceinvaders.ParticleEffect.Particle;
 
 import com.badlogic.gdx.math.Rectangle;
 
@@ -23,10 +20,23 @@ import com.badlogic.gdx.math.Rectangle;
  */
 public class Player {
 
+    public enum Powerup{
+        NONE, DOUBLESHOT
+    }
+
+    public enum State{
+        ENTERING, NORMAL, RESPAWNING, DEAD
+    }
+
+    private State state;
+
     private final int width = (int)(SpaceInvaders.UNIT*3.5);
     private final int height = (int)(SpaceInvaders.UNIT*2);
 
     private final Color color = new Color(1.0f, 1.0f, 1.0f, 1f);
+
+    private static final Sound shootSound = Gdx.audio.newSound( Gdx.files.internal("shoot16bit.wav"));
+    private static final Sound hitSound = Gdx.audio.newSound( Gdx.files.internal("explosion16bit.wav"));
 
     // these are relative to loc
     private Rectangle[] rects;
@@ -35,20 +45,22 @@ public class Player {
     private float xAcc, xVel;
     private float xAccelerometerVel;
 
-    private boolean entering;
-
     public Bullet[] bullets;
     private int numBullets;
 
     private int lives;
     private int score;
 
+    private float shootPeriod = 1;
+    private float bulletOneShootTime;
+    private float bulletTwoShootTime;
+
+    private Powerup powerup;
+
     private BitmapFont font;
     private GlyphLayout layout;
 
     public Player(){
-        this.lives = 3;
-        this.entering = false;
         this.loc = new Vector2(SpaceInvaders.WIDTH/2 - width/2f, SpaceInvaders.UNIT*2);
 
         this.rects = new Rectangle[] {
@@ -60,21 +72,25 @@ public class Player {
             new Rectangle(width*0.5f - width*(1f/13f)/2f, (7f/8f)*height, width*(1f/13f), (1f/8f)*height)
         };
 
-        this.xAcc = 0;
-        this.xVel = 0;
-        this.xAccelerometerVel = 0;
-
         this.bullets = new Bullet[]{new Bullet(), new Bullet()};
-        this.numBullets = 0;
 
         this.font = new BitmapFont();
         font.getData().setScale(1.1f);
         this.layout = new GlyphLayout();
+        reset();
     }
 
-    // TODO: complete reset
     public void reset(){
-
+        this.lives = 3;
+        this.xAcc = 0;
+        this.xVel = 0;
+        this.xAccelerometerVel = 0;
+        this.numBullets = 0;
+        this.powerup = Powerup.NONE;
+        this.bulletOneShootTime = shootPeriod;
+        this.bulletTwoShootTime = shootPeriod;
+        this.state = State.NORMAL;
+        this.score = 0;
     }
 
     public void draw(ShapeRenderer sr){
@@ -93,7 +109,7 @@ public class Player {
     }
 
     public void drawLives(ShapeRenderer sr) {
-        float scale = 0.5f;
+        float scale = 0.6f;
         float x = SpaceInvaders.UNIT;
         float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*(scale/2) - height*scale;
         sr.setColor(Color.WHITE);
@@ -104,11 +120,16 @@ public class Player {
             x += width*scale + SpaceInvaders.UNIT;
         }
 
+        // bullet one
+        sr.rect(0, SpaceInvaders.UNIT/3f, SpaceInvaders.UNIT * 12 * (bulletOneShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
+        // bullet two
+        if(powerup == Powerup.DOUBLESHOT)
+            sr.rect(0, SpaceInvaders.UNIT, SpaceInvaders.UNIT * 12 * ( bulletTwoShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
 
     }
 
-    public void drawScore(SpriteBatch sb){
-        float scale = 0.5f;
+    public void drawScoreAndLives(SpriteBatch sb){
+        float scale = 0.6f;
         float x = (width * scale + SpaceInvaders.UNIT) * lives + SpaceInvaders.UNIT/2f;
         float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2);
         if(lives > 0) {
@@ -117,21 +138,31 @@ public class Player {
         }
         //score
         layout.setText(font, "Score: " + score);
-        x = SpaceInvaders.WIDTH/2 - layout.width/2;
+        x = SpaceInvaders.WIDTH/2 - layout.width / 2;
         font.draw(sb, layout, x, y);
-
     }
 
     public void update(float delta) {
+        if(powerup == Powerup.DOUBLESHOT) {
+            if (bulletTwoShootTime < shootPeriod) {
+                bulletTwoShootTime += delta;
+                if (bulletTwoShootTime > shootPeriod)
+                    bulletTwoShootTime = shootPeriod;
+            }
+        }
+
+        if (bulletOneShootTime < shootPeriod) {
+            bulletOneShootTime += delta;
+            if (bulletOneShootTime > shootPeriod)
+                bulletOneShootTime = shootPeriod;
+        }
+
+
         move(delta);
 
         for(int i = 0; i < numBullets; ++i){
             bullets[i].update(delta);
         }
-    }
-
-    public void applyXForce(float force){
-        xAcc += force;
     }
 
     public void friction(float force){
@@ -140,16 +171,19 @@ public class Player {
 
     public void move(float delta){
         xAccelerometerVel = Gdx.input.getAccelerometerY();
+        xAccelerometerVel /= 5f;
+        if(xAccelerometerVel > 1)
+            xAccelerometerVel = 1;
 
         //apply friction
         friction(0.9f);
 
+        //apoly accelerometer velocity
+        xVel += xAccelerometerVel;
+
         //apply acceleration and velocity
         xVel += xAcc;
         loc.x += xVel * delta*60;
-
-        //apoly accelerometer velocity
-        xVel += xAccelerometerVel;
 
         //keys
         boolean left = Gdx.input.isKeyPressed(Input.Keys.LEFT);
@@ -160,7 +194,6 @@ public class Player {
         } else if(right && !left){
             xVel += 1.0f;
         }
-
 
         if(xVel > 5)
             xVel = 5;
@@ -178,9 +211,20 @@ public class Player {
     }
 
     public void shoot(){
-        if( numBullets == 0 && !entering ){
-            bullets[0].reset((int) loc.x + width / 2 - (5 / 2), (int) loc.y + height, 5, 10, /*2*/8, color);
-            ++numBullets;
+        if( ( (numBullets == 1  &&  powerup == Powerup.DOUBLESHOT)  ||  numBullets == 0 )
+                &&  state != State.ENTERING ){
+            if(powerup == Powerup.DOUBLESHOT && bulletTwoShootTime >= shootPeriod){
+                bullets[numBullets].reset((int) loc.x + width / 2 - (5 / 2), (int) loc.y + height, 5, 10, /*2*/8, color, Bullet.Type.RECT);
+                ++numBullets;
+                shootSound.play(SpaceInvaders.volume);
+                bulletTwoShootTime -= shootPeriod;
+            }
+            else if(bulletOneShootTime >= shootPeriod) {
+                bullets[numBullets].reset((int) loc.x + width / 2 - (5 / 2), (int) loc.y + height, 5, 10, /*2*/8, color, Bullet.Type.RECT);
+                ++numBullets;
+                shootSound.play(SpaceInvaders.volume);
+                bulletOneShootTime -= shootPeriod;
+            }
         }
     }
 
@@ -194,11 +238,20 @@ public class Player {
         }
     }
 
+    // TODO: make player respawn, flash, while swarm is paused and its bullets are removed. then  everything resumes. WHEN HIT
+
     public ParticleEffect hit(){
         if(lives > 0)
             --lives;
+
+        hitSound.play(SpaceInvaders.volume);
         ParticleEffect answer = ParticleEffectPool.getLarge();
-        answer.reset(0, (int)loc.x+width/2, (int)loc.y+height/2, 10, color);
+        answer.reset(0, (int)loc.x+width/2, (int)loc.y+height/2, 10, 10, color);
+
+//        if(lives > 0){
+//            state = State.RESPAWNING;
+//        }
+
         return answer;
     }
 
@@ -234,8 +287,8 @@ public class Player {
         return numBullets;
     }
 
-    public void setEntering(boolean entering){
-        this.entering = entering;
+    public void setState(State state){
+        this.state = state;
     }
 
     public boolean isDead(){
@@ -247,6 +300,10 @@ public class Player {
 
     public void addToScore(int val){
         score += val;
+    }
+
+    public void setPowerup(Powerup powerup){
+        this.powerup = powerup;
     }
 
 }

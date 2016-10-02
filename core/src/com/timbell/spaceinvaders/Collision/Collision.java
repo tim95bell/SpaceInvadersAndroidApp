@@ -1,10 +1,16 @@
 package com.timbell.spaceinvaders.Collision;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.Entities.Bullet;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Enemy;
+import com.timbell.spaceinvaders.Entities.EnemyOne;
+import com.timbell.spaceinvaders.Entities.EnemyThree;
+import com.timbell.spaceinvaders.Entities.EnemyTwo;
+import com.timbell.spaceinvaders.Entities.MotherShip;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.Entities.Swarm;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
@@ -37,8 +43,11 @@ public class Collision {
     // objects used by PlayScreen only
     private GameScreen playScreen;
     private Swarm swarm;
-    private Array<Enemy> enemies;
+    private Enemy[] enemies;
     private Bullet[] enemyBullets;
+    private MotherShip motherShip;
+
+    private Sound gong;
 
     public Collision(Player p1, Array<ParticleEffect> particleEffects){
         this.p1 = p1;
@@ -48,13 +57,16 @@ public class Collision {
         this.particleEffects = particleEffects;
 
         this.newParticleEffects = new Array<ParticleEffect>(false, 2);
+
+        this.gong = Gdx.audio.newSound(Gdx.files.internal("gongTrimmed.wav"));
     }
 
-    public void addPlayScreenObjects(GameScreen screen, Swarm swarm){
+    public void addPlayScreenObjects(GameScreen screen, Swarm swarm, MotherShip motherShip){
         this.playScreen = screen;
         this.swarm = swarm;
         this.enemies = swarm.members;
         this.enemyBullets = swarm.bullets;
+        this.motherShip = motherShip;
     }
 
     public void addMenuScreenObjects(GameScreen screen, Button playButton){ //}, Button settingsButton){
@@ -74,7 +86,7 @@ public class Collision {
     public Array<ParticleEffect> checkPlayCollision(){
         newParticleEffects.clear();
 
-        //playerBullets and roof/walls, | and enemies | and enemyBullets
+        //playerBullets and roof/walls, | and enemies | and enemyBullets  |  motherShips
         int numPlayerBullets = p1.getNumBullets();
         int numEnemyBullets = swarm.getNumBullets();
         for(int i = numPlayerBullets-1; i >= 0; --i){
@@ -83,16 +95,28 @@ public class Collision {
             if( bullet.getX() < 0 ||
                     bullet.getX()+bullet.getWidth() > SpaceInvaders.WIDTH ||
                     bullet.getY()+bullet.getHeight() > SpaceInvaders.HEIGHT) {
-                newParticleEffects.add( bullet.hit() );
+                newParticleEffects.add(bullet.hit());
                 p1.removeBullet(i);
+                // TODO: fix up gong playing
+                gong.play(SpaceInvaders.volume);
+                continue;
             }
             //enemies
-            for(int j = enemies.size-1; j >= 0; --j){
-                Enemy enemy = enemies.get(j);
-                if(enemy.getRect().overlaps(bullet.getRect())){
-                    newParticleEffects.add( enemy.hit() );
+            for(int j = enemies.length-1; j >= 0; --j){
+                Enemy enemy = enemies[j];
+                if(!enemy.isDead()  &&  enemy.getRect().overlaps(bullet.getRect())){
+                    if(enemy instanceof EnemyOne)
+                        p1.addToScore(10);
+                    else if(enemy instanceof EnemyTwo)
+                        p1.addToScore(20);
+                    else if(enemy instanceof EnemyThree)
+                        p1.addToScore(30);
+                    ParticleEffect enemyParticlleEffect = enemy.hit();
+                    if(enemyParticlleEffect != null)
+                        newParticleEffects.add( enemyParticlleEffect );
                     newParticleEffects.add( bullet.hit() );
                     p1.removeBullet(i);
+                    continue;
                 }
             }
             // enemy bullets
@@ -102,8 +126,21 @@ public class Collision {
                     swarm.removeBullet(j);
                     newParticleEffects.add(playerBullets[i].hit());
                     p1.removeBullet(i);
+                    continue;
                 }
             }
+            // mothership
+            if( !(motherShip.getState() == MotherShip.State.DEAD) ){
+                if(motherShip.getRect().overlaps(bullet.getRect())){
+                    newParticleEffects.add(motherShip.hit());
+                    newParticleEffects.add(bullet.hit());
+                    p1.removeBullet(i);
+                    // TODO : Create powerup
+                    p1.setPowerup(Player.Powerup.DOUBLESHOT);
+                    continue;
+                }
+            }
+
         }
 
         //particles and enemies, player, bounds, sheilds
@@ -115,9 +152,9 @@ public class Collision {
                 float pY = particles[p].getY();
 
                 //enemies
-                for (int e = 0; e < enemies.size; ++e) {
-                    Enemy enemy = enemies.get(e);
-                    if( enemy.getRect().contains(pX, pY) ){
+                for (int e = 0; e < enemies.length; ++e) {
+                    Enemy enemy = enemies[e];
+                    if( !enemy.isDead()  &&  enemy.getRect().contains(pX, pY) ){
                         particles[p].bounce(enemy.getX(), enemy.getY(), enemy.getWidth(), enemy.getHeight());
                     }
                 }
@@ -230,13 +267,14 @@ public class Collision {
 
         //playerBullets and roof/walls
         int numBullets = p1.getNumBullets();
-        for(int i = 0; i < numBullets; ++i){
+        for(int i = numBullets-1; i >= 0; --i){
             Bullet bullet = playerBullets[i];
             if( bullet.getX() < 0 ||
                     bullet.getX()+bullet.getWidth() > SpaceInvaders.WIDTH ||
                     bullet.getY()+bullet.getHeight() > SpaceInvaders.HEIGHT) {
-                newParticleEffects.add( bullet.hit() );
+                newParticleEffects.add(bullet.hit());
                 p1.removeBullet(i);
+                gong.play(SpaceInvaders.volume);
             }
         }
 
@@ -314,7 +352,7 @@ public class Collision {
                         newParticleEffects.addAll(button.hit(), 0, 2);
                         newParticleEffects.add(playerBullets[i].hit());
                         p1.removeBullet(i);
-                        if (button.getType() == Button.ButtonSymbol.PLAY || button.getType() == Button.ButtonSymbol.RETRY)
+                        if (button.getType() == Button.ButtonSymbol.RETRY)
                             gameOverScreen.changeScreen(SpaceInvaders.PLAY_STATE);
                         else if (button.getType() == Button.ButtonSymbol.EXIT)
                             gameOverScreen.changeScreen(SpaceInvaders.MENU_STATE);
@@ -326,4 +364,45 @@ public class Collision {
 
         return newParticleEffects;
     }
+
+    public Array<ParticleEffect> checkPlayEnteringCollision(){
+        newParticleEffects.clear();
+
+        //playerBullets and roof/walls
+        int numBullets = p1.getNumBullets();
+        for(int i = 0; i < numBullets; ++i){
+            Bullet bullet = playerBullets[i];
+            if( bullet.getX() < 0 ||
+                    bullet.getX()+bullet.getWidth() > SpaceInvaders.WIDTH ||
+                    bullet.getY()+bullet.getHeight() > SpaceInvaders.HEIGHT) {
+                newParticleEffects.add( bullet.hit() );
+                p1.removeBullet(i);
+                gong.play(SpaceInvaders.volume);
+            }
+        }
+
+        //particles and player, bounds
+        for(int i = 0; i < particleEffects.size; ++i){
+            Particle[] particles = particleEffects.get(i).particles;
+
+            for(int p = 0; p < particles.length; ++p) {
+                float pX = particles[p].getX();
+                float pY = particles[p].getY();
+
+                //player
+                p1.getRects(recievePlayerRectangles);
+                for(int j = 0; j < recievePlayerRectangles.length; ++j) {
+                    if (recievePlayerRectangles[j].contains(pX, pY)) {
+                        particles[p].bounce(recievePlayerRectangles[j].getX(), recievePlayerRectangles[j].getY(), (int)recievePlayerRectangles[j].getWidth(), (int)recievePlayerRectangles[j].getHeight());
+                    }
+                }
+
+                //bounds
+                particles[p].bounds();
+            }
+        }
+
+        return newParticleEffects;
+    }
+
 }

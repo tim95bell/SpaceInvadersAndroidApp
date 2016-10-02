@@ -1,5 +1,7 @@
 package com.timbell.spaceinvaders.Entities;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -8,18 +10,21 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
+import com.timbell.spaceinvaders.SpaceInvaders;
 
 /**
  * Created by timbell on 6/08/16.
  */
 public class Button {
 
-    private static Texture exitSymbol;
-    private static Texture playSymbol;
-    private static Texture settingsSymbol;
-    private static Texture retrySymbol;
+    public static Texture exitSymbol;
+    public static Texture playSymbol;
+    public static Texture settingsSymbol;
+    public static Texture retrySymbol;
 
-    public static enum ButtonSymbol{
+    public static Sound hitSound;
+
+    public enum ButtonSymbol{
         EXIT, PLAY, SETTINGS, RETRY
     }
 
@@ -32,8 +37,6 @@ public class Button {
 
     private ButtonSymbol type;
 
-    // TODO: consider whether this creating and disposing of images is nessisary, good, and will work. think multiple buttons.
-
 
     public Button(float x, float y, float size, Color buttonColor, Color symbolColor, ButtonSymbol buttonSymbol){
         this.x = x;
@@ -45,32 +48,23 @@ public class Button {
 
         symX = x + size/6;
         symY = y + size/6;
-//        symSize = size - size/3;
         symSize = size/6*4;
         this.rect = new Rectangle();
 
-        if(buttonSymbol == ButtonSymbol.EXIT){
-            exitSymbol = new Texture("exitSymbol.png");
+        this.type = buttonSymbol;
+        if(type == ButtonSymbol.EXIT)
             this.symbol = exitSymbol;
-            this.type = ButtonSymbol.EXIT;
-        } else if(buttonSymbol == ButtonSymbol.PLAY){
-            playSymbol = new Texture("playSymbol.png");
+        else if(type == ButtonSymbol.PLAY)
             this.symbol = playSymbol;
-            this.type = ButtonSymbol.PLAY;
-        } else if(buttonSymbol == ButtonSymbol.SETTINGS){
-            settingsSymbol = new Texture("settingsSymbol.png");
+        else if(type == ButtonSymbol.SETTINGS)
             this.symbol = settingsSymbol;
-            this.type = ButtonSymbol.SETTINGS;
-        } else if(buttonSymbol == ButtonSymbol.RETRY){
-            retrySymbol = new Texture("retrySymbol.png");
+        else if(type == ButtonSymbol.RETRY)
             this.symbol = retrySymbol;
-            this.type = ButtonSymbol.RETRY;
-        }
     }
 
     // TODO: implement reset
     public void reset(){
-
+        this.visible = true;
     }
 
     public void dispose(){
@@ -78,7 +72,7 @@ public class Button {
     }
 
 
-    public void drawShape(ShapeRenderer sr){
+    public void drawShape(ShapeRenderer sr, float transparancy){
         if(!visible)
             return;
 
@@ -97,16 +91,16 @@ public class Button {
 //        // top right circle
 //        sr.circle(x + size - circleRadius, y + size - circleRadius, circleRadius);
 
-        sr.setColor(buttonColor);
+        sr.setColor(buttonColor.r, buttonColor.g, buttonColor.b, transparancy);
         sr.rect(x, y, size, size);
 
     }
 
-    public void drawSymbol(SpriteBatch sb){
+    public void drawSymbol(SpriteBatch sb, float transparancy){
         if(!visible)
             return;
 
-        sb.setColor(symbolColor);
+        sb.setColor(symbolColor.r, symbolColor.g, symbolColor.b, transparancy);
         sb.draw(symbol, symX, symY, symSize, symSize);
     }
 
@@ -120,8 +114,8 @@ public class Button {
     }
 
     public ParticleEffect[] hit(){
+        hitSound.play(SpaceInvaders.volume);
         visible = false;
-        dispose();
         return ParticleEffect.buttonParticleEffect(x, y, size, symX, symY, symSize, 4000, buttonColor, symbolColor, symbol);
     }
 

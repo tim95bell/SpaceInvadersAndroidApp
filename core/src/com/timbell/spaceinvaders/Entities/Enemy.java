@@ -1,5 +1,7 @@
 package com.timbell.spaceinvaders.Entities;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -19,16 +21,27 @@ public abstract class Enemy {
     public static final int BULLET_HEIGHT = 10;
     public static final int BULLET_SPEED = -2;
 
+    public static Sound hitSound;
+    public static Sound shootSound = Gdx.audio.newSound(Gdx.files.internal("enemyShoot.wav"));
+
     protected static boolean useImageOne;
+
+    protected boolean shoots;
+    protected boolean dead;
 
     protected Rectangle rect;
     protected Swarm swarm;
 
+    protected int index;
 
-    public Enemy(Swarm swarm, int x, int y, int width, int height){
+
+    public Enemy(Swarm swarm, int x, int y, int width, int height, int index){
         this.rect = new Rectangle(x, y, width, height);
         useImageOne = true;
         this.swarm = swarm;
+        this.index = index;
+//        this.hitSound = Gdx.audio.newSound(Gdx.files.internal("invaderkilled16bit.wav"));
+//        this.hitSound = Gdx.audio.newSound(Gdx.files.internal("glassSmashTrimmed.wav"));
     }
 
     public abstract void shoot(Bullet bullet);
@@ -37,8 +50,9 @@ public abstract class Enemy {
     public abstract ParticleEffect hit();
 
     public void die(){
-        swarm.members.removeValue(this, true);
-        swarm.updateSpeedAndShootChance();
+//        swarm.members.removeValue(this, true);
+        dead = true;
+        swarm.memberDied(index);
     }
 
     public boolean move(int direction){
@@ -75,6 +89,17 @@ public abstract class Enemy {
 
     public static void changeImage(){
         useImageOne = !useImageOne;
+    }
+
+    public void setShoots(boolean val){
+        shoots = val;
+    }
+    public boolean isShooter(){
+        return shoots;
+    }
+
+    public boolean isDead(){
+        return dead;
     }
 
 }

@@ -3,16 +3,9 @@ package com.timbell.spaceinvaders.ParticleEffect;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.timbell.spaceinvaders.Assets.AssetManager;
-import com.timbell.spaceinvaders.SpaceInvaders;
-import com.timbell.spaceinvaders.ParticleEffect.Particle;
-
-import javafx.stage.Screen;
 
 /**
  * Created by timbell on 1/09/16.
@@ -44,9 +37,13 @@ public class ParticleEffect {
             particles[i] = new Particle();
     }
 
-    public void reset(float yVel, int x, int y, int spread, Color color){
+    public void reset(float yVel, int x, int y, int xSpread, int ySpread, Color color){
+        reset(0, yVel, x, y, xSpread, ySpread, color);
+    }
+
+    public void reset(float xVel, float yVel, int x, int y, int xSpread, int ySpread, Color color){
         for(int i = 0; i < particles.length; ++i)
-            particles[i].reset(yVel, x, y, spread);
+            particles[i].reset(xVel, yVel, x, y, xSpread, ySpread);
         this.color = color;
         this.dead = false;
         timeElapsed = 0;

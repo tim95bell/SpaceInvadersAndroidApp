@@ -4,14 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
-import com.timbell.spaceinvaders.Assets.AssetManager;
 import com.timbell.spaceinvaders.Collision.Collision;
-import com.timbell.spaceinvaders.Collision.MenuCollision;
-import com.timbell.spaceinvaders.Entities.Bullet;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
@@ -25,19 +20,26 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  */
 public class MenuScreen extends GameScreen {
 
+    public static final Color BG_COLOR = new Color(0f, 0f, 0f, 0.9f);
+
     private Button playButton;
 
     private Player p1;
 
     private Array<ParticleEffect> particleEffects;
 
-    private boolean switchingToPlay;
-    private static final int switchTime = 5;
-    private float switchCount;
+    private Color backgroundColor;
 
-    private float backgroundTransparancy;
+    private final float transitionPeriod = 5;
+    private float transitionTime;
 
     private Collision collision;
+
+    private State state;
+
+    public enum State{
+        ENTERING, NORMAL, TRANSITION_PLAY
+    }
 
 
     public MenuScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects, Collision collision){
@@ -47,6 +49,8 @@ public class MenuScreen extends GameScreen {
         this.particleEffects = particleEffects;
         this.collision = collision;
 
+        this.backgroundColor = new Color();
+
         playButton = new Button(SpaceInvaders.WIDTH/2f - 150f/2f, SpaceInvaders.HEIGHT/2f - 150f/2f + SpaceInvaders.UNIT*2, 150, new Color(0.576f, 0.769f, 0.49f, 1f), Color.BLACK, Button.ButtonSymbol.PLAY);
 
         collision.addMenuScreenObjects(this, playButton);
@@ -54,10 +58,11 @@ public class MenuScreen extends GameScreen {
 
     public void init(){
         playButton.reset();
-        switchingToPlay = false;
-        switchCount = 0;
+        state = State.ENTERING;
+        transitionTime = 0;
 
-        backgroundTransparancy = 0.9f;
+        backgroundColor.set(BG_COLOR);
+        particleEffects.clear();
     }
 
     @Override
@@ -83,17 +88,24 @@ public class MenuScreen extends GameScreen {
             return;
 
         if(screen == SpaceInvaders.PLAY_STATE) {
-            p1.setEntering(true);
-            switchingToPlay = true;
+            p1.setState(Player.State.ENTERING);
+            state = State.TRANSITION_PLAY;
+            transitionTime = 0;
         }
     }
 
     public void update(float delta){
-        if(switchingToPlay){
-            switchCount += delta;
-            backgroundTransparancy = 0.9f-(switchCount/switchTime)*0.4f;
-            if(switchCount > switchTime) {
-                switchingToPlay = false;
+        if(state == State.ENTERING){
+            transitionTime += delta;
+            if(transitionTime > transitionPeriod) {
+                state = State.NORMAL;
+            }
+        }
+        else if(state == State.TRANSITION_PLAY){
+            transitionTime += delta;
+            SpaceInvaders.mix(BG_COLOR, PlayScreen.BG_COLOR, transitionTime/transitionPeriod, backgroundColor);
+            if(transitionTime > transitionPeriod) {
+                state = State.NORMAL;
                 game.changeScreen(SpaceInvaders.PLAY_STATE);
             }
         }
@@ -103,8 +115,11 @@ public class MenuScreen extends GameScreen {
     }
 
     public void draw(float delta){
-        game.bgport.apply();
+        float buttonTransparancy = 1f;
+        if(state == State.ENTERING)
+            buttonTransparancy = transitionTime/transitionPeriod;
 
+        game.bgport.apply();
         // Draw Background
         game.bgBatch.begin();
         game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
@@ -112,11 +127,11 @@ public class MenuScreen extends GameScreen {
 
         game.gameport.apply(); // to show the actual screen being used, for other screen ratios
         // darken background with a 30% transparent black square
-        Gdx.gl.glEnable(GL20.GL_BLEND);
 
+        Gdx.gl.glEnable(GL20.GL_BLEND);
         // TODO: replace this with darkening the texture image
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        game.sr.setColor(0f, 0f, 0f, backgroundTransparancy);
+        game.sr.setColor(backgroundColor);
         game.sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         game.sr.end();
 
@@ -134,21 +149,23 @@ public class MenuScreen extends GameScreen {
                 particleEffects.get(i).draw(game.sr);
             }
         }
+
+        playButton.drawShape(game.sr, buttonTransparancy);
         game.sr.end();
+
+        game.sb.begin();
+        playButton.drawSymbol(game.sb, buttonTransparancy);
+        game.sb.end();
+
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
         // TEST
 //        testButton.draw(game.sr, game.sb);
 
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        playButton.drawShape(game.sr);
         p1.drawBullets(game.sr);
         p1.draw(game.sr);
         game.sr.end();
-
-        game.sb.begin();
-        playButton.drawSymbol(game.sb);
-        game.sb.end();
 
 //        game.sr.begin(ShapeRenderer.ShapeType.Filled);
 //

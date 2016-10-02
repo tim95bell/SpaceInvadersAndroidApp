@@ -27,12 +27,17 @@ public class Particle{
         this.vel = new Vector2();
     }
 
-    public void reset(float yVel, float x, float y, float spread){
-        loc.set( (float)(x + (Math.random()*spread) - spread/2), (float)(y + (Math.random()*spread) - spread/2) );
+    public void reset(float yVel, float x, float y, float xSpread, float ySpread){
+        reset(0, yVel, x, y, xSpread, ySpread);
+    }
+
+    public void reset(float xVel, float yVel, float x, float y, float xSpread, float ySpread){
+        loc.set( (float)(x + (Math.random()*xSpread) - xSpread/2), (float)(y + (Math.random()*ySpread) - ySpread/2) );
         vel.setToRandomDirection();
         vel.x *= (float)(Math.random()*ParticleEffect.SPEED);
         vel.y *= (float)(Math.random()*ParticleEffect.SPEED);
         vel.y += yVel;
+        vel.x += xVel;
     }
 
      public Particle(float x, float y){

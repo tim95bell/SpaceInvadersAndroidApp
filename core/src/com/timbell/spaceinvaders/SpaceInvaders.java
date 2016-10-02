@@ -13,26 +13,22 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.FillViewport;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.timbell.spaceinvaders.Assets.AssetManager;
 import com.timbell.spaceinvaders.Collision.Collision;
+import com.timbell.spaceinvaders.Entities.Button;
+import com.timbell.spaceinvaders.Entities.Enemy;
 import com.timbell.spaceinvaders.Entities.EnemyOne;
 import com.timbell.spaceinvaders.Entities.EnemyThree;
 import com.timbell.spaceinvaders.Entities.EnemyTwo;
+import com.timbell.spaceinvaders.Entities.MotherShip;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.GameScreens.GameOverScreen;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.GameScreens.MenuScreen;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
-import com.timbell.spaceinvaders.GameScreens.Screen;
 import com.timbell.spaceinvaders.Input.InputHandler;
-import com.timbell.spaceinvaders.ParticleEffect.Particle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
-
-import static com.timbell.spaceinvaders.Assets.AssetManager.*;
 
 public class SpaceInvaders extends Game {
 
@@ -54,11 +50,15 @@ public class SpaceInvaders extends Game {
 	public static final int WIDTH = 640;
 	public static final int HEIGHT = 360;
 
-	public static final int UNIT = 12;
+	public static final int UNIT = 10;//12;
 	public static final int LOSE_HEIGHT = UNIT*6;
+
+	public static final int MAX_SCORE  = 3780;
 
 	public static Texture BACKGROUND;
 	public static Texture SPRITE_SHEET;
+
+	public static float volume = 1.0f;
 
 
 	// CLASS
@@ -83,8 +83,6 @@ public class SpaceInvaders extends Game {
 
 	@Override
 	public void create () {
-		// dont want continuous rendering for menuScreen, which is first screen
-//		Gdx.graphics.setContinuousRendering(false);
 		Gdx.graphics.setContinuousRendering(true);
 
 		initAssets();
@@ -103,9 +101,7 @@ public class SpaceInvaders extends Game {
 		gameport = new ScalingViewport(Scaling.fit, WIDTH, HEIGHT, cam);
 		bgport = new FillViewport(WIDTH, HEIGHT, bgCam);
 
-		// TEST
-		calculateSideBarWidth(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
+		//calculateSideBarWidth(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
 		// Batches and Renderer setups
 		sb = new SpriteBatch();
@@ -136,8 +132,6 @@ public class SpaceInvaders extends Game {
 		inputHandler = new InputHandler(this);
 		Gdx.input.setInputProcessor(inputHandler);
 
-		// Init Assets
-		AssetManager.init();
 		// Init Particle Effect Pool
 		ParticleEffectPool.init();
 
@@ -153,6 +147,15 @@ public class SpaceInvaders extends Game {
 		EnemyTwo.IMAGE_TWO = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 35, 0, 11, 8);
 		EnemyThree.IMAGE_ONE = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 0, 8, 8, 8);
 		EnemyThree.IMAGE_TWO = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 8, 8, 8, 8);
+		MotherShip.image = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 29, 8, 16, 7);
+
+		Button.hitSound = Enemy.hitSound = Gdx.audio.newSound(Gdx.files.internal("light_bulb_smash.wav"));
+		MotherShip.sound = Gdx.audio.newSound(Gdx.files.internal("motherShip2Trimmed.wav"));
+
+		Button.exitSymbol = new Texture("exitSymbol.png");
+		Button.playSymbol = new Texture("playSymbol.png");
+		Button.settingsSymbol = new Texture("settingsSymbol.png");
+		Button.retrySymbol = new Texture("retrySymbol.png");
 	}
 
 	@Override
@@ -161,23 +164,6 @@ public class SpaceInvaders extends Game {
 
 		// Draw the current screen
 		screen.render(Gdx.graphics.getDeltaTime());
-
-		//TEST
-//		int l = gameport.getLeftGutterWidth();
-//		int r = gameport.getRightGutterWidth();
-//		bgport.apply();
-//
-//		ShapeRenderer normalSr = new ShapeRenderer();
-
-		// darken sidebars if screen is not 16:9
-		//NOTE: need to use normalSr that isnt being stretched, it was messing up the widths, the measurments were acctually right
-//		Gdx.gl.glEnable(GL20.GL_BLEND);
-//		normalSr.begin(ShapeRenderer.ShapeType.Filled);
-//		normalSr.setColor(0f, 0f, 0f, 0.5f);
-//		normalSr.rect(0, 0, SIDE_BAR_WIDTH, HEIGHT);
-//		normalSr.rect(Gdx.graphics.getWidth() - SIDE_BAR_WIDTH, 0, SIDE_BAR_WIDTH, HEIGHT);
-//		normalSr.end();
-//		Gdx.gl.glDisable(GL20.GL_BLEND);
 	}
 
 	@Override
@@ -225,69 +211,18 @@ public class SpaceInvaders extends Game {
 		calculateSideBarWidth(width, height);
 	}
 
-//	public void setState(int state){
-//		if(state >= 0 && state < screens.length) {
-//			if(state == PLAY_STATE)
-//				screens[state] = new PlayState();
-//			currentState = state;
-//			setScreen(screens[currentState]);
-//			inputHandler.setScreen(screens[currentState]);
-//
-//			//turn off game loop for menu, or on otherwise
-//			// NOTE: need to test this
-////			if(state == MENU_STATE){
-////				Gdx.graphics.setContinuousRendering(false);
-////			}
-////			else{
-////				Gdx.graphics.setContinuousRendering(true);
-////			}
-//		}
-//	}
-
-	public void changeScreen(int screen){ //Player p1, int screen){
+	public void changeScreen(int screen){
 		if(screen < 0 || screen > 3)
 			return;
 
-//		if(screen == MENU_STATE)
-//			screens[screen] = new MenuScreen(this, p1);
-//		else if(screen == PLAY_STATE)
-//			screens[screen] = new PlayScreen(this, p1);
-//		else if(screen == GAMEOVER_STATE)
-//			screens[screen] = new GameOverScreen(this, p1);
-
-//		screens[currentState].dispose();
 		// TODO: should i dispose some things on the screen being switched out, then re make them on init?
 		currentState = screen;
 		inputHandler.setScreen(screens[currentState]);
 		screens[currentState].init();
 		setScreen(screens[currentState]);
-
 	}
 
-//	public void changeToPlayState(Player p1){
-//		screens[PLAY_STATE] = new PlayScreen(this, p1);
-//		screens[currentState].dispose();
-//		currentState = PLAY_STATE;
-//		setScreen(screens[currentState]);
-//	}
-//
-//	public void changeToMenuState(){
-//		screens[MENU_STATE] = new MenuScreen(this, p1);
-//		screens[currentState].dispose();
-//		currentState = MENU_STATE;
-//		setScreen(screens[currentState]);
-//	}
-//
-//	public void changeToGameOverState(Player p1){
-//		screens[GAMEOVER_STATE] = new GameOverScreen(this, p1);
-//		screens[currentState].dispose();
-//		currentState = GAMEOVER_STATE;
-//		setScreen(screens[currentState]);
-//	}
-
-
 	public void calculateSideBarWidth(int width, int height){
-
 		if(((double)width)/((double)height) > 16.0/9.0){
 			double unit = ((double)height)/9.0;
 			double actualWidth = 16*unit;
@@ -302,15 +237,6 @@ public class SpaceInvaders extends Game {
 			SIDE_BAR_WIDTH = 0;
 		}
 
-
-
-//		if(gameport.getWorldWidth() < bgport.getWorldWidth()){
-//			SIDE_BAR_WIDTH = (int)(bgport.getScreenWidth() - gameport.getScreenWidth())/2;
-//		}
-//		else
-//			SIDE_BAR_WIDTH = 0;
-
-		System.out.println(SIDE_BAR_WIDTH);
 	}
 
 	public static void mix(Color from, Color too, float percent, Color outColor){
