@@ -49,7 +49,11 @@ public class EnemyOne extends Enemy {
     public void shoot(Bullet bullet){
 //        shootSound.play();
         // TODO: this has been changed for an experiment
-//        bullet.reset((int)(rect.x + rect.width / 2 - BULLET_WIDTH / 2), (int)(rect.y + rect.height), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, COLOR, Bullet.Type.RECT);
+//        bullet.reset((int)(rect.x + rect.WIDTH / 2 - BULLET_WIDTH / 2), (int)(rect.y + rect.HEIGHT), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, COLOR, Bullet.Type.RECT);
         bullet.reset((int)(rect.x + rect.width / 2 - BULLET_WIDTH / 2), (int)(rect.y + rect.height), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, Color.RED, Bullet.Type.RECT);
+    }
+
+    public int getScoreAdd(){
+        return 10;
     }
 }

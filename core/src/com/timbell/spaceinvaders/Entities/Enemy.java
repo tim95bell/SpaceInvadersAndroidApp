@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.timbell.spaceinvaders.GameScreens.PlayScreen;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
@@ -22,7 +23,6 @@ public abstract class Enemy {
     public static final int BULLET_SPEED = -2;
 
     public static Sound hitSound;
-    public static Sound shootSound = Gdx.audio.newSound(Gdx.files.internal("enemyShoot.wav"));
 
     protected static boolean useImageOne;
 
@@ -62,9 +62,9 @@ public abstract class Enemy {
     }
 
     public boolean moveDown(){
-        rect.y -= SpaceInvaders.UNIT;
+        rect.y -= SpaceInvaders.UNIT*2;
         //return if it is to low, and therefore the player has lost the game
-        return rect.y+rect.height < SpaceInvaders.LOSE_HEIGHT;
+        return rect.y < PlayScreen.LOSE_HEIGHT;
     }
 
     public Rectangle getRect(){
@@ -101,5 +101,7 @@ public abstract class Enemy {
     public boolean isDead(){
         return dead;
     }
+
+    public abstract int getScoreAdd();
 
 }

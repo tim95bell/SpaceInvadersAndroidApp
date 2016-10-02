@@ -67,20 +67,7 @@ public class MenuScreen extends GameScreen {
 
     @Override
     public void touchDown(float x, float y){
-
-//        y = (y/Gdx.graphics.getHeight())*SpaceInvaders.HEIGHT;
-//        y = SpaceInvaders.HEIGHT-y;
-//        x = (x/Gdx.graphics.getWidth())*SpaceInvaders.WIDTH;
-//
-//        // TEST
-//        if(testButton.contains((int)x, (int)y)) {
-//            particleEffects.addAll(testButton.hit(), 0, 2);
-//            switchingToPlay = true;
-//        }
-
-
         p1.shoot();
-
     }
 
     public void changeScreen(int screen){
@@ -122,7 +109,7 @@ public class MenuScreen extends GameScreen {
         game.bgport.apply();
         // Draw Background
         game.bgBatch.begin();
-        game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+            game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         game.bgBatch.end();
 
         game.gameport.apply(); // to show the actual screen being used, for other screen ratios
@@ -131,45 +118,40 @@ public class MenuScreen extends GameScreen {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         // TODO: replace this with darkening the texture image
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        game.sr.setColor(backgroundColor);
-        game.sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
+            game.sr.setColor(backgroundColor);
+            game.sr.rect(0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
         game.sr.end();
 
 
 //        game.gameport.apply();
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        for(int i = 0; i < particleEffects.size; ++i) {
-            if(particleEffects.get(i).isDead()) {
-                ParticleEffectPool.free(particleEffects.get(i));
-                particleEffects.removeIndex(i);
+            // draw and free particle effects
+            for(int i = 0; i < particleEffects.size; ++i) {
+                if(particleEffects.get(i).isDead()) {
+                    ParticleEffectPool.free(particleEffects.get(i));
+                    particleEffects.removeIndex(i);
+                }
+                else {
+                    particleEffects.get(i).update(delta);
+                    particleEffects.get(i).bounds();
+                    particleEffects.get(i).draw(game.sr);
+                }
             }
-            else {
-                particleEffects.get(i).update(delta);
-                particleEffects.get(i).bounds();
-                particleEffects.get(i).draw(game.sr);
-            }
-        }
-
-        playButton.drawShape(game.sr, buttonTransparancy);
+            // draw play button
+            playButton.drawShape(game.sr, buttonTransparancy);
         game.sr.end();
 
         game.sb.begin();
-        playButton.drawSymbol(game.sb, buttonTransparancy);
+            // draw play button symbol
+            playButton.drawSymbol(game.sb, buttonTransparancy);
         game.sb.end();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
-
-        // TEST
-//        testButton.draw(game.sr, game.sb);
-
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        p1.drawBullets(game.sr);
-        p1.draw(game.sr);
+            // draw player and their bullets
+            p1.drawBullets(game.sr);
+            p1.draw(game.sr);
         game.sr.end();
-
-//        game.sr.begin(ShapeRenderer.ShapeType.Filled);
-//
-//        game.sr.end();
 
     }
 

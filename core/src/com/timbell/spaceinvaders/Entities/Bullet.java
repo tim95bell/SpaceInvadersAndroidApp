@@ -15,9 +15,9 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  * Created by timbell on 1/09/16.
  */
 public class Bullet {
-    private int x, y, width, height;
+    protected int x, y, width, height;
     private Rectangle rect;
-    private float xSpeed, ySpeed;
+    protected float xSpeed, ySpeed;
 
     public Color color;
 
@@ -26,18 +26,6 @@ public class Bullet {
     public enum Type{
         RECT, ROUND
     }
-
-//    private Array owningList;
-
-//    public Bullet(Array owningList, int x, int y, int width, int height, float ySpeed, Color color){
-//        this.x = x;
-//        this.y = y;
-//        this.width = width;
-//        this.height = height;
-//        this.ySpeed = ySpeed;
-//        this.color = color;
-////        this.owningList = owningList;
-//    }
 
     public Bullet(){
         this.rect = new Rectangle();

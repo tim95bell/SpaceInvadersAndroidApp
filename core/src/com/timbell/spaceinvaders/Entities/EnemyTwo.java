@@ -67,4 +67,11 @@ public class EnemyTwo extends Enemy {
         bullet.reset((int) (rect.x + rect.width / 2 - BULLET_WIDTH / 2), (int) (rect.y + rect.height), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, Color.GREEN, Bullet.Type.RECT);
     }
 
+    public int getScoreAdd(){
+        if(lives == 1)
+            return 20;
+        else
+            return 0;
+    }
+
 }

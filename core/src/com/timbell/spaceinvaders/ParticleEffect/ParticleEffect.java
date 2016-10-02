@@ -21,7 +21,6 @@ public class ParticleEffect {
     public Color color;
     private boolean dead;
 
-
     public ParticleEffect(){
         this.dead = false;
         this.color = null;

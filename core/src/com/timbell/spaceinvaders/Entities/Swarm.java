@@ -60,7 +60,8 @@ public class Swarm {
         numTimesMovedDown = 0;
     }
 
-    public void update(float delta){
+    public boolean update(float delta){
+        boolean gameOver = false;
 
         timeSinceMove += delta;
         while(timeSinceMove > movePeriod) {
@@ -68,7 +69,7 @@ public class Swarm {
             moveSound.play(SpaceInvaders.volume);
             Enemy.changeImage();
 
-            boolean gameOver = move();
+            gameOver = move();
 
             for(int i = 0; i < members.length; ++i){
                 if(numBullets < bullets.length  &&  Math.random() < shootChance){
@@ -92,6 +93,8 @@ public class Swarm {
         for(int i = 0; i < numBullets; ++i){
             bullets[i].update(delta);
         }
+
+        return gameOver;
     }
 
     public void draw(SpriteBatch batch){
@@ -124,6 +127,10 @@ public class Swarm {
         }
     }
 
+    public void clearBullets(){
+        numBullets = 0;
+    }
+
     public boolean move(){
         boolean gonePastEdge = false;
 
@@ -150,83 +157,6 @@ public class Swarm {
         return gameOver;
     }
 
-
-
-
-    public void levelArrayToSwarm(int[] level){
-        entering = true;
-//        enterPos = -SpaceInvaders.WIDTH;
-
-
-//        for(int row = 0; row < ROWS; ++row){
-//            for(int col = 0; col < COLS; ++col){
-//                if(level[row][col] == 1){
-//                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4);
-//                    int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
-//                    members.add( new EnemyOne(this, x, y) );
-//                }
-//                else if(level[row][col] == 2){
-//                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4);
-//                    int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
-//                    members.add( new EnemyTwo(this, x, y) );
-//                }
-//                else if(level[row][col] == 3){
-//                    int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4) + (SpaceInvaders.UNIT/2);
-//                    int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
-//                    members.add( new EnemyThree(this, x, y) );
-//                }
-//            }
-//        }
-
-
-//        for(int i = 0; i < level.length; ++i){
-//            int row = i%ROWS;
-//            int col = i/ROWS;
-//             if(level[i] == 1){
-//                int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4);
-//                int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
-//                members[i] = new EnemyOne(this, x, y);
-//             }
-//             else if(level[i] == 2){
-//                int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4);
-//                int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
-//                members[i] = new EnemyTwo(this, x, y);
-//             }
-//             else if(level[i] == 3){
-//                int x = (int)sideWidth + (col*SpaceInvaders.UNIT*4) + (SpaceInvaders.UNIT/2);
-//                int y = START_HEIGHT - (row*SpaceInvaders.UNIT*3);
-//                members[i] = new EnemyThree(this, x, y);
-//             }
-//            if(row == 4)
-//                members[i].setShoots(true);
-//        }
-
-
-        for(int x = 0; x < COLS; ++x){
-            for(int y = 0; y < ROWS; ++y){
-                int membersIndex = x*ROWS + y;
-                int levelIndex = y*COLS + x;
-                if(level[levelIndex] == 1){
-                    int X = (int)sideWidth + (x*SpaceInvaders.UNIT*4);
-                    int Y = START_HEIGHT - (y*SpaceInvaders.UNIT*3);
-                    members[membersIndex] = new EnemyOne(this, X, Y, membersIndex);
-                }
-                else if(level[levelIndex] == 2){
-                    int X = (int)sideWidth + (x*SpaceInvaders.UNIT*4);
-                    int Y = START_HEIGHT - (y*SpaceInvaders.UNIT*3);
-                    members[membersIndex] = new EnemyTwo(this, X, Y, membersIndex);
-                }
-                else if(level[levelIndex] == 3){
-                    int X = (int)sideWidth + (x*SpaceInvaders.UNIT*4) + (SpaceInvaders.UNIT/2);
-                    int Y = START_HEIGHT - (y*SpaceInvaders.UNIT*3);
-                    members[membersIndex] = new EnemyThree(this, X, Y, membersIndex);
-                }
-                if(y == 4)
-                    members[membersIndex].setShoots(true);
-            }
-        }
-
-    }
 
     public void loadLevel(Level level){
         numMembersAlive = 0;

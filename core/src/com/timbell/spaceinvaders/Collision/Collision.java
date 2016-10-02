@@ -12,6 +12,7 @@ import com.timbell.spaceinvaders.Entities.EnemyThree;
 import com.timbell.spaceinvaders.Entities.EnemyTwo;
 import com.timbell.spaceinvaders.Entities.MotherShip;
 import com.timbell.spaceinvaders.Entities.Player;
+import com.timbell.spaceinvaders.Entities.SpecialBullet;
 import com.timbell.spaceinvaders.Entities.Swarm;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
@@ -24,6 +25,8 @@ import com.timbell.spaceinvaders.SpaceInvaders;
 public class Collision {
 
     // TODO: instead of havving new particle effects array and returning it, i could just add them straight to particle effects here, as it is a refferance to the Array anyway
+
+    public static Sound gong;
 
     // objects used by all
     private Player p1;
@@ -47,8 +50,6 @@ public class Collision {
     private Bullet[] enemyBullets;
     private MotherShip motherShip;
 
-    private Sound gong;
-
     public Collision(Player p1, Array<ParticleEffect> particleEffects){
         this.p1 = p1;
         this.recievePlayerRectangles = new Rectangle[]{ new Rectangle(), new Rectangle(), new Rectangle()};
@@ -57,8 +58,6 @@ public class Collision {
         this.particleEffects = particleEffects;
 
         this.newParticleEffects = new Array<ParticleEffect>(false, 2);
-
-        this.gong = Gdx.audio.newSound(Gdx.files.internal("gongTrimmed.wav"));
     }
 
     public void addPlayScreenObjects(GameScreen screen, Swarm swarm, MotherShip motherShip){
@@ -105,12 +104,7 @@ public class Collision {
             for(int j = enemies.length-1; j >= 0; --j){
                 Enemy enemy = enemies[j];
                 if(!enemy.isDead()  &&  enemy.getRect().overlaps(bullet.getRect())){
-                    if(enemy instanceof EnemyOne)
-                        p1.addToScore(10);
-                    else if(enemy instanceof EnemyTwo)
-                        p1.addToScore(20);
-                    else if(enemy instanceof EnemyThree)
-                        p1.addToScore(30);
+                    p1.addToScore(enemy.getScoreAdd());
                     ParticleEffect enemyParticlleEffect = enemy.hit();
                     if(enemyParticlleEffect != null)
                         newParticleEffects.add( enemyParticlleEffect );
@@ -132,18 +126,18 @@ public class Collision {
             // mothership
             if( !(motherShip.getState() == MotherShip.State.DEAD) ){
                 if(motherShip.getRect().overlaps(bullet.getRect())){
-                    newParticleEffects.add(motherShip.hit());
                     newParticleEffects.add(bullet.hit());
                     p1.removeBullet(i);
                     // TODO : Create powerup
-                    p1.setPowerup(Player.Powerup.DOUBLESHOT);
+                    String powerupStr = p1.generatePowerup();
+                    newParticleEffects.add(motherShip.hit(powerupStr));
                     continue;
                 }
             }
 
         }
 
-        //particles and enemies, player, bounds, sheilds
+        //particles AND enemies, player, bounds, sheilds
         for(int i = 0; i < particleEffects.size; ++i){
             Particle[] particles = particleEffects.get(i).particles;
 
@@ -174,6 +168,34 @@ public class Collision {
 
             }
 
+        }
+
+        // p1 Special bullet,  and edges, and enemies
+        SpecialBullet p1SpecialBullet = p1.getSpecialBullet();
+        if( !p1SpecialBullet.isDead() ){
+            // edges
+            if( p1SpecialBullet.getX() < 0 ||
+                    p1SpecialBullet.getX()+p1SpecialBullet.getWidth() > SpaceInvaders.WIDTH ||
+                    p1SpecialBullet.getY()+p1SpecialBullet.getHeight() > SpaceInvaders.HEIGHT) {
+                newParticleEffects.add(p1SpecialBullet.hitEdge());
+                p1SpecialBullet.die();
+                gong.play(SpaceInvaders.volume);
+            }
+            // enemies
+            for (int e = enemies.length-1; e >= 0; --e) {
+                Enemy enemy = enemies[e];
+                if( !enemy.isDead() ) {
+                    if (enemy.getRect().overlaps(p1SpecialBullet.getRect())) {
+                        p1.addToScore(enemy.getScoreAdd());
+                        newParticleEffects.add(p1SpecialBullet.hit());
+//                    p1SpecialBullet.hit();
+                        ParticleEffect enemyParticlleEffect = enemy.hit();
+                        if (enemyParticlleEffect != null)
+                            newParticleEffects.add(enemyParticlleEffect);
+                        System.out.println("members: " + swarm.getNumMembersAlive());
+                    }
+                }
+            }
         }
 
 //        //playerBullets and enemies

@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
@@ -21,7 +22,7 @@ import com.badlogic.gdx.math.Rectangle;
 public class Player {
 
     public enum Powerup{
-        NONE, DOUBLESHOT
+        NONE, DOUBLESHOT, LEFTSHOT, RIGHTSHOT, VERTICALSHOT
     }
 
     public enum State{
@@ -30,13 +31,14 @@ public class Player {
 
     private State state;
 
-    private final int width = (int)(SpaceInvaders.UNIT*3.5);
-    private final int height = (int)(SpaceInvaders.UNIT*2);
+    public static final int WIDTH = (int)(SpaceInvaders.UNIT*3.5);
+    public static final int HEIGHT = (int)(SpaceInvaders.UNIT*2);
+    public static final int Y = SpaceInvaders.UNIT*2;
 
     private final Color color = new Color(1.0f, 1.0f, 1.0f, 1f);
 
-    private static final Sound shootSound = Gdx.audio.newSound( Gdx.files.internal("shoot16bit.wav"));
-    private static final Sound hitSound = Gdx.audio.newSound( Gdx.files.internal("explosion16bit.wav"));
+    public static Sound shootSound;
+    public static Sound hitSound;
 
     // these are relative to loc
     private Rectangle[] rects;
@@ -47,6 +49,7 @@ public class Player {
 
     public Bullet[] bullets;
     private int numBullets;
+    private SpecialBullet specialBullet;
 
     private int lives;
     private int score;
@@ -56,23 +59,25 @@ public class Player {
     private float bulletTwoShootTime;
 
     private Powerup powerup;
+    private float powerupTimeLeft;
 
     private BitmapFont font;
     private GlyphLayout layout;
 
     public Player(){
-        this.loc = new Vector2(SpaceInvaders.WIDTH/2 - width/2f, SpaceInvaders.UNIT*2);
+        this.loc = new Vector2(SpaceInvaders.WIDTH/2 - WIDTH /2f, Y);
 
         this.rects = new Rectangle[] {
-//            new Rectangle(0, 0, width, width / 3),
-//            new Rectangle(width / 2f - width / 8f, width / 3f, width / 4f, width / 5f),
-//            new Rectangle(width / 2f - width / 26f, width / 3f + width / 5f, width / 13f, width / 13f)
-            new Rectangle(0, 0, width, (5f/8f)*height),
-            new Rectangle(width*0.5f - width*(3f/13f)/2f, (5f/8f)*height, width*(3f/13f), (2f/8f)*height),
-            new Rectangle(width*0.5f - width*(1f/13f)/2f, (7f/8f)*height, width*(1f/13f), (1f/8f)*height)
+//            new Rectangle(0, 0, WIDTH, WIDTH / 3),
+//            new Rectangle(WIDTH / 2f - WIDTH / 8f, WIDTH / 3f, WIDTH / 4f, WIDTH / 5f),
+//            new Rectangle(WIDTH / 2f - WIDTH / 26f, WIDTH / 3f + WIDTH / 5f, WIDTH / 13f, WIDTH / 13f)
+            new Rectangle(0, 0, WIDTH, (5f/8f)* HEIGHT),
+            new Rectangle(WIDTH *0.5f - WIDTH *(3f/13f)/2f, (5f/8f)* HEIGHT, WIDTH *(3f/13f), (2f/8f)* HEIGHT),
+            new Rectangle(WIDTH *0.5f - WIDTH *(1f/13f)/2f, (7f/8f)* HEIGHT, WIDTH *(1f/13f), (1f/8f)* HEIGHT)
         };
 
         this.bullets = new Bullet[]{new Bullet(), new Bullet()};
+        this.specialBullet = new SpecialBullet();
 
         this.font = new BitmapFont();
         font.getData().setScale(1.1f);
@@ -86,6 +91,7 @@ public class Player {
         this.xVel = 0;
         this.xAccelerometerVel = 0;
         this.numBullets = 0;
+        this.specialBullet.die();
         this.powerup = Powerup.NONE;
         this.bulletOneShootTime = shootPeriod;
         this.bulletTwoShootTime = shootPeriod;
@@ -106,31 +112,34 @@ public class Player {
         for(int i = 0; i < numBullets; ++i){
             bullets[i].draw(sr);
         }
+        if( !specialBullet.isDead() ) {
+            specialBullet.draw(sr);
+        }
     }
 
     public void drawLives(ShapeRenderer sr) {
         float scale = 0.6f;
         float x = SpaceInvaders.UNIT;
-        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*(scale/2) - height*scale;
+        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*(scale/2) - HEIGHT *scale;
         sr.setColor(Color.WHITE);
         for(int i = 0; i < lives; ++i){
             for(int j = 0; j < rects.length; ++j) {
                 sr.rect(x + rects[j].getX()*scale, y + rects[j].getY()*scale, rects[j].getWidth()*scale, rects[j].getHeight()*scale);
             }
-            x += width*scale + SpaceInvaders.UNIT;
+            x += WIDTH *scale + SpaceInvaders.UNIT;
         }
 
         // bullet one
-        sr.rect(0, SpaceInvaders.UNIT/3f, SpaceInvaders.UNIT * 12 * (bulletOneShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
+        sr.rect(0, SpaceInvaders.UNIT / 3f, SpaceInvaders.UNIT * 12 * (bulletOneShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
         // bullet two
         if(powerup == Powerup.DOUBLESHOT)
             sr.rect(0, SpaceInvaders.UNIT, SpaceInvaders.UNIT * 12 * ( bulletTwoShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
 
     }
 
-    public void drawScoreAndLives(SpriteBatch sb){
+    public void drawScoreAndLivesTextAndPowerup(SpriteBatch sb){
         float scale = 0.6f;
-        float x = (width * scale + SpaceInvaders.UNIT) * lives + SpaceInvaders.UNIT/2f;
+        float x = (WIDTH * scale + SpaceInvaders.UNIT) * lives + SpaceInvaders.UNIT/2f;
         float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2);
         if(lives > 0) {
             //livesText
@@ -140,17 +149,35 @@ public class Player {
         layout.setText(font, "Score: " + score);
         x = SpaceInvaders.WIDTH/2 - layout.width / 2;
         font.draw(sb, layout, x, y);
+        // powerup
+        if(powerup != Powerup.NONE){
+            layout.setText( font, String.format("%s : %.0f", getPowerupString(powerup), powerupTimeLeft) );
+            font.draw(sb, layout, SpaceInvaders.WIDTH-layout.width/4*5, y);
+        }
     }
 
     public void update(float delta) {
-        if(powerup == Powerup.DOUBLESHOT) {
-            if (bulletTwoShootTime < shootPeriod) {
-                bulletTwoShootTime += delta;
-                if (bulletTwoShootTime > shootPeriod)
-                    bulletTwoShootTime = shootPeriod;
+        // handle powerups
+        if (powerup != Powerup.NONE) {
+            // decrease powerup time if in normal state
+            if(state == State.NORMAL) {
+                powerupTimeLeft -= delta;
+                if (powerupTimeLeft < 0) {
+                    powerupTimeLeft = 0;
+                    powerup = Powerup.NONE;
+                }
+            }
+
+            // doubleshot bullet two shoot time regen
+            if (powerup == Powerup.DOUBLESHOT) {
+                if (bulletTwoShootTime < shootPeriod) {
+                    bulletTwoShootTime += delta;
+                    if (bulletTwoShootTime > shootPeriod)
+                        bulletTwoShootTime = shootPeriod;
+                }
             }
         }
-
+        // reload bulletShootTime
         if (bulletOneShootTime < shootPeriod) {
             bulletOneShootTime += delta;
             if (bulletOneShootTime > shootPeriod)
@@ -163,6 +190,9 @@ public class Player {
         for(int i = 0; i < numBullets; ++i){
             bullets[i].update(delta);
         }
+
+        if( !specialBullet.isDead() )
+            specialBullet.update(delta);
     }
 
     public void friction(float force){
@@ -203,8 +233,8 @@ public class Player {
         //reset acceleration
         xAcc = 0;
 
-        if(loc.x+width > SpaceInvaders.WIDTH)
-            loc.x = SpaceInvaders.WIDTH - width;
+        if(loc.x+ WIDTH > SpaceInvaders.WIDTH)
+            loc.x = SpaceInvaders.WIDTH - WIDTH;
         else if(loc.x < 0)
             loc.x = 0;
 
@@ -214,16 +244,30 @@ public class Player {
         if( ( (numBullets == 1  &&  powerup == Powerup.DOUBLESHOT)  ||  numBullets == 0 )
                 &&  state != State.ENTERING ){
             if(powerup == Powerup.DOUBLESHOT && bulletTwoShootTime >= shootPeriod){
-                bullets[numBullets].reset((int) loc.x + width / 2 - (5 / 2), (int) loc.y + height, 5, 10, /*2*/8, color, Bullet.Type.RECT);
+                bullets[numBullets].reset((int) loc.x + WIDTH / 2 - (5 / 2), (int) loc.y + HEIGHT, 5, 10, /*2*/8, color, Bullet.Type.RECT);
                 ++numBullets;
                 shootSound.play(SpaceInvaders.volume);
                 bulletTwoShootTime -= shootPeriod;
             }
             else if(bulletOneShootTime >= shootPeriod) {
-                bullets[numBullets].reset((int) loc.x + width / 2 - (5 / 2), (int) loc.y + height, 5, 10, /*2*/8, color, Bullet.Type.RECT);
-                ++numBullets;
+                if(powerup == Powerup.RIGHTSHOT){
+                    specialBullet.reset((int) loc.x + WIDTH / 2 - (5 / 2), (int) loc.y + HEIGHT, SpecialBullet.Direction.RIGHT);
+                    powerup = Powerup.NONE;
+                }
+                else if(powerup == Powerup.LEFTSHOT){
+                    specialBullet.reset((int) loc.x + WIDTH / 2 - (5 / 2), (int) loc.y + HEIGHT, SpecialBullet.Direction.LEFT);
+                    powerup = Powerup.NONE;
+                }
+                else if(powerup == Powerup.VERTICALSHOT){
+                    specialBullet.reset((int) loc.x + WIDTH / 2 - (5 / 2), (int) loc.y + HEIGHT, SpecialBullet.Direction.VERTICAL);
+                    powerup = Powerup.NONE;
+                }
+                else{
+                    bullets[numBullets].reset((int) loc.x + WIDTH / 2 - (5 / 2), (int) loc.y + HEIGHT, 5, 10, /*2*/8, color, Bullet.Type.RECT);
+                    ++numBullets;
+                    bulletOneShootTime -= shootPeriod;
+                }
                 shootSound.play(SpaceInvaders.volume);
-                bulletOneShootTime -= shootPeriod;
             }
         }
     }
@@ -246,7 +290,7 @@ public class Player {
 
         hitSound.play(SpaceInvaders.volume);
         ParticleEffect answer = ParticleEffectPool.getLarge();
-        answer.reset(0, (int)loc.x+width/2, (int)loc.y+height/2, 10, 10, color);
+        answer.reset(0, (int)loc.x+ WIDTH /2, (int)loc.y+ HEIGHT /2, 10, 10, color);
 
 //        if(lives > 0){
 //            state = State.RESPAWNING;
@@ -276,11 +320,11 @@ public class Player {
     }
 
     public int getWidth(){
-        return width;
+        return WIDTH;
     }
 
     public int getHeight(){
-        return height;
+        return HEIGHT;
     }
 
     public int getNumBullets(){
@@ -302,8 +346,49 @@ public class Player {
         score += val;
     }
 
-    public void setPowerup(Powerup powerup){
+    public String generatePowerup(){
+        Powerup powerup;
+        this.powerupTimeLeft = 30;
+
+        double r = MathUtils.random();
+        if(r  < 1f/3f)
+            powerup = Powerup.DOUBLESHOT;
+        else if(r  < 1f/3f*2f)
+            powerup = Powerup.VERTICALSHOT;
+        else if(r  < 1f/6f*5f)
+            powerup = Powerup.LEFTSHOT;
+        else
+            powerup = Powerup.RIGHTSHOT;
+
         this.powerup = powerup;
+        return getPowerupString(this.powerup);
+    }
+
+    public SpecialBullet getSpecialBullet(){
+        return specialBullet;
+    }
+
+    public void killSpecialBullet() {
+        specialBullet.die();
+    }
+
+    public String getPowerupString(Powerup powerup){
+        String s = "";
+        if(powerup == Powerup.DOUBLESHOT)
+            s = "Double Shot";
+        else if(powerup == Powerup.RIGHTSHOT)
+            s = "Right Shot";
+        else if(powerup == Powerup.LEFTSHOT)
+            s = "Left Shot";
+        else if(powerup == Powerup.VERTICALSHOT)
+            s = "Vertical Shot";
+
+        return s;
+    }
+
+    public void clearBullets(){
+        numBullets = 0;
+        specialBullet.die();
     }
 
 }

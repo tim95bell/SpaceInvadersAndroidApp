@@ -3,6 +3,7 @@ package com.timbell.spaceinvaders;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -38,7 +39,7 @@ public class SpaceInvaders extends Game {
 	// (to show the edge of where you can go. and then have everything happen withing the actual game part of the screen, that is theright aspect ratio.
 	// except have bullets and particles go outside the screen.
 	// could get rid of the gameport as now, and just have a normal one that takes up the whole screen. and inforce it myself. by having
-	// xOff and yOff. so instead of being "x = width/2;" it would be "x = xOff + width/2;".
+	// xOff and yOff. so instead of being "x = WIDTH/2;" it would be "x = xOff + WIDTH/2;".
 	// xOff or yOff would be 0, and the other would be 0 if the aspect ratio is perfect, otherwise it would be some positive value.
 
 
@@ -51,7 +52,6 @@ public class SpaceInvaders extends Game {
 	public static final int HEIGHT = 360;
 
 	public static final int UNIT = 10;//12;
-	public static final int LOSE_HEIGHT = UNIT*6;
 
 	public static final int MAX_SCORE  = 3780;
 
@@ -59,7 +59,6 @@ public class SpaceInvaders extends Game {
 	public static Texture SPRITE_SHEET;
 
 	public static float volume = 1.0f;
-
 
 	// CLASS
 	private int SIDE_BAR_WIDTH;
@@ -81,8 +80,11 @@ public class SpaceInvaders extends Game {
 	public ScalingViewport gameport;
 	public FillViewport bgport;
 
+	private Preferences prefs;
+
 	@Override
 	public void create () {
+		prefs = Gdx.app.getPreferences("HighScore");
 		Gdx.graphics.setContinuousRendering(true);
 
 		initAssets();
@@ -151,6 +153,9 @@ public class SpaceInvaders extends Game {
 
 		Button.hitSound = Enemy.hitSound = Gdx.audio.newSound(Gdx.files.internal("light_bulb_smash.wav"));
 		MotherShip.sound = Gdx.audio.newSound(Gdx.files.internal("motherShip2Trimmed.wav"));
+		Collision.gong = Gdx.audio.newSound(Gdx.files.internal("gongTrimmed.wav"));
+		Player.shootSound = Gdx.audio.newSound( Gdx.files.internal("enemyShoot.wav"));
+		Player.hitSound = Gdx.audio.newSound( Gdx.files.internal("explosion16bit.wav"));
 
 		Button.exitSymbol = new Texture("exitSymbol.png");
 		Button.playSymbol = new Texture("playSymbol.png");
@@ -168,7 +173,25 @@ public class SpaceInvaders extends Game {
 
 	@Override
 	public void dispose(){
+		Button.hitSound.dispose();
+		MotherShip.sound.dispose();
+		Collision.gong.dispose();
+		Player.shootSound.dispose();
+		Player.hitSound.dispose();
 
+		BACKGROUND.dispose();
+		SPRITE_SHEET.dispose();
+		Button.exitSymbol.dispose();
+		Button.playSymbol.dispose();
+		Button.settingsSymbol.dispose();
+		Button.retrySymbol.dispose();
+
+		sb.dispose();
+		bgBatch.dispose();
+		sr.dispose();
+		bgSr.dispose();
+		for(int i = 0; i < screens.length; ++i)
+			screens[i].dispose();
 	}
 
 	@Override
@@ -188,22 +211,22 @@ public class SpaceInvaders extends Game {
 
 
 //		// TEST
-//		if(width/height > 16/9){
-//			double unit = height/9.0;
+//		if(WIDTH/HEIGHT > 16/9){
+//			double unit = HEIGHT/9.0;
 //			double actualWidth = 16*unit;
-//			double extraWidth = width - actualWidth;
-//			gameport.update((int)actualWidth, height, true);
+//			double extraWidth = WIDTH - actualWidth;
+//			gameport.update((int)actualWidth, HEIGHT, true);
 ////			gameport.setScreenX((int)extraWidth/2);
 //		}
-//		else if(width/height < 16/9){
-//			double unit = width/16.0;
+//		else if(WIDTH/HEIGHT < 16/9){
+//			double unit = WIDTH/16.0;
 //			double actualHeight = 9*unit;
-//			double extraHeight = height - actualHeight;
-//			gameport.update(width, (int)actualHeight, true);
+//			double extraHeight = HEIGHT - actualHeight;
+//			gameport.update(WIDTH, (int)actualHeight, true);
 ////			gameport.setScreenY((int)extraHeight/2);
 //		}
 //		else{
-//			gameport.update(width, height);
+//			gameport.update(WIDTH, HEIGHT);
 //		}
 //
 //		cam.update();
@@ -215,7 +238,6 @@ public class SpaceInvaders extends Game {
 		if(screen < 0 || screen > 3)
 			return;
 
-		// TODO: should i dispose some things on the screen being switched out, then re make them on init?
 		currentState = screen;
 		inputHandler.setScreen(screens[currentState]);
 		screens[currentState].init();
@@ -230,7 +252,7 @@ public class SpaceInvaders extends Game {
 			SIDE_BAR_WIDTH = (int)(extraWidth/2);
 			System.out.println("w/h: " + ((double)width)/((double)height) + "   |   16/9: " + 16.0/9.0);
 			System.out.println("new screen: " + actualWidth/(double)height + "16/9: " + 16.0/9.0);
-			System.out.println("width: " + width + "   |   actualwidth + extrawidth: " + (actualWidth + extraWidth));
+			System.out.println("WIDTH: " + width + "   |   actualwidth + extrawidth: " + (actualWidth + extraWidth));
 			System.out.println("actualWidth: " + actualWidth + "  extraWidth: " + extraWidth);
 		}
 		else{
@@ -248,8 +270,14 @@ public class SpaceInvaders extends Game {
 		);
 	}
 
+	public int getHighScore(){
+		return prefs.getInteger("Score", 0);
+	}
 
-
-
+	public void setHighScore(int score){
+		prefs.clear();
+		prefs.putInteger("Score", score);
+		prefs.flush();
+	}
 
 }

@@ -24,6 +24,7 @@ public class PlayScreen extends GameScreen {
 
     public static final Color BG_COLOR = new Color(0f, 0f, 0f, 0.8f);
     // TODO: fully implement BG_COLOR and mix
+    public static final int LOSE_HEIGHT = Player.Y + Player.HEIGHT;
 
     // game objects
     private Player p1;
@@ -88,6 +89,7 @@ public class PlayScreen extends GameScreen {
             this.state = State.ENTERING;
             swarm.reset();
             p1.setState(Player.State.ENTERING);
+            p1.killSpecialBullet();
             this.enterPos = -SpaceInvaders.WIDTH*2;
             this.transitionTime = 0;
             freeAllParticleEffects();
@@ -106,19 +108,21 @@ public class PlayScreen extends GameScreen {
         if(swarm.getNumMembersAlive() == 0)
             loadNextLevel();
 
-        // if mothership is dead, swarm has moved down twice, and player is alive, then have a chance to spawn a mothership
-        if( (motherShip.getState() == MotherShip.State.DEAD)  &&  swarm.getNumTimesMovedDown() > 2  && (!p1.isDead()) ) {
-            if( Math.random()*10 <  ((double)0.5)*delta )
-                motherShip.reset();
-        }
-
-        if(motherShip.getState() == MotherShip.State.ALIVE || motherShip.getState() == MotherShip.State.DYING)
-            motherShip.update(delta);
-
         if(state == State.GAME) {
-            swarm.update(delta);
+            // spawn a mothership ??
+            if( (motherShip.getState() == MotherShip.State.DEAD)  &&  swarm.getNumTimesMovedDown() > 2  && (!p1.isDead()) ) {
+                if( Math.random()*10 <  ((double)0.5)*delta )
+                    motherShip.reset();
+            }
+            // update mothership
+            if(motherShip.getState() == MotherShip.State.ALIVE || motherShip.getState() == MotherShip.State.DYING)
+                motherShip.update(delta);
 
-            if (p1.isDead())
+            boolean gameOver = swarm.update(delta);
+
+            gameOver = gameOver || p1.isDead();
+
+            if (gameOver)
                 changeScreen(SpaceInvaders.GAMEOVER_STATE);
 
             particleEffects.addAll(collision.checkPlayCollision());
@@ -126,7 +130,7 @@ public class PlayScreen extends GameScreen {
         else if(state == State.TRANSITION_GAMEOVER){
             transitionTime += delta;
             if(transitionTime > transitionPeriod) {
-                p1.reset();
+//                p1.reset();
                 freeAllParticleEffects();
                 game.changeScreen(SpaceInvaders.GAMEOVER_STATE);
             }
@@ -203,7 +207,7 @@ public class PlayScreen extends GameScreen {
             }
             if(motherShip.getState() == MotherShip.State.ALIVE || motherShip.getState() == MotherShip.State.DYING)
                 motherShip.draw(game.sb);
-            p1.drawScoreAndLives(game.sb);
+            p1.drawScoreAndLivesTextAndPowerup(game.sb);
         game.sb.end();
 
 
@@ -215,6 +219,8 @@ public class PlayScreen extends GameScreen {
             motherShip.dieNow();
             state = State.TRANSITION_GAMEOVER;
             transitionTime = 0;
+            p1.clearBullets();
+            swarm.clearBullets();
         }
     }
 

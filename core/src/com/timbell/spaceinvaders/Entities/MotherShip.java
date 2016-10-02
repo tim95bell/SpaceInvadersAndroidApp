@@ -87,7 +87,7 @@ public class MotherShip {
             sb.draw(image, rect.x, rect.y, rect.width, rect.height);
         }
         else if(state == State.DYING){
-            float x = rect.x+rect.width/2;//layout.width/4;
+            float x = rect.x+rect.width/2;//layout.WIDTH/4;
             if(x-layout.width/2 < 0)
                 x = layout.width/2;
             else if(x+layout.width/2 > SpaceInvaders.WIDTH)
@@ -97,7 +97,8 @@ public class MotherShip {
         }
     }
 
-    public void die(){
+    public void die(String powerupStr){
+        layout.setText(font, powerupStr, Color.WHITE, rect.width, 0, false);
         sound.stop();
         state = State.DYING;
     }
@@ -108,8 +109,8 @@ public class MotherShip {
     }
 
 
-    public ParticleEffect hit(){
-        die();
+    public ParticleEffect hit(String powerupStr){
+        die(powerupStr);
         ParticleEffect particleEffect = ParticleEffectPool.getSmall();
         particleEffect.reset(0, (int)rect.x, (int)rect.y, (int)rect.width, (int)rect.height, Color.ORANGE);
         return particleEffect;
@@ -124,7 +125,6 @@ public class MotherShip {
     }
 
     public void setState(State state){
-        layout.setText(font, "Double Shot", Color.WHITE, rect.width, 0, false);
         this.state = state;
     }
 }

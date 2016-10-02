@@ -48,7 +48,8 @@ public class GameOverScreen extends GameScreen {
 
     private BitmapFont font;
     private GlyphLayout fontLayout;
-    private String mainText;
+    private String mainText, thisScoreText, oldHighScoreText;
+    private int oldHighScore, thisScore;
 
     public enum State{
         ENTERING, NORMAL, TRANSITION_PLAY, TRANSITION_MENU
@@ -76,6 +77,15 @@ public class GameOverScreen extends GameScreen {
             mainText = "You Won!";
         else
             mainText = "Game Over";
+        thisScore = p1.getScore();
+        oldHighScore = game.getHighScore();
+        if(thisScore > oldHighScore) {
+            thisScoreText = "New High Score: " + thisScore;
+            game.setHighScore(thisScore);
+        }
+        else
+            thisScoreText = "Score: " + thisScore;
+        oldHighScoreText = "Previous High Score: " + oldHighScore;
 
         retryButton.reset();
         mainMenuButton.reset();
@@ -175,8 +185,25 @@ public class GameOverScreen extends GameScreen {
             // Game Over / You Won
             font.getData().setScale(4f);
             fontLayout.setText(font, mainText);
-            float x = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
-            font.draw(game.sb, fontLayout, x, SpaceInvaders.HEIGHT-fontLayout.height/2);
+            float mainTextHeight = fontLayout.height;
+            float mainTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
+            float mainTextY = SpaceInvaders.HEIGHT - mainTextHeight / 2;
+            font.draw(game.sb, fontLayout, mainTextX, mainTextY);
+
+            // your score
+            font.getData().setScale(2f);
+            fontLayout.setText(font, thisScoreText);
+            float thisScoreTextHeight = fontLayout.height;
+            float thisScoreTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
+            float thisScoreTextY = mainTextY - mainTextHeight*2;
+            font.draw(game.sb, fontLayout, thisScoreTextX, thisScoreTextY);
+
+            // old high score
+            font.getData().setScale(1.5f);
+            fontLayout.setText(font, oldHighScoreText);
+            float oldHighScoreTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
+            float oldHighScoreTextY = thisScoreTextY - thisScoreTextHeight*2;
+            font.draw( game.sb, fontLayout, oldHighScoreTextX, oldHighScoreTextY );
         game.sb.end();
 
     }

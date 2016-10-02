@@ -56,10 +56,14 @@ public class EnemyThree extends Enemy {
 
     public void shoot(Bullet[] bullet) {
 //        shootSound.play();
-//        bullet.reset((int) (rect.x + rect.width / 2 - BULLET_WIDTH / 2), (int) (rect.y + rect.height), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, COLOR);
+//        bullet.reset((int) (rect.x + rect.WIDTH / 2 - BULLET_WIDTH / 2), (int) (rect.y + rect.HEIGHT), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, COLOR);
         // TODO: this has been changed for an experiment , Color changed to blue insteand of COLOR
         bullet[0].reset((int) (rect.x + rect.width / 2 - BULLET_WIDTH / 2), (int) (rect.y), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED / 2f, BULLET_SPEED / 2f, Color.BLUE, Bullet.Type.ROUND);
         bullet[1].reset((int) (rect.x + rect.width / 2 - BULLET_WIDTH / 2), (int) (rect.y), BULLET_WIDTH, BULLET_HEIGHT, -BULLET_SPEED/2f, BULLET_SPEED/2f, Color.BLUE, Bullet.Type.ROUND);
+    }
+
+    public int getScoreAdd(){
+        return 30;
     }
 
 }
