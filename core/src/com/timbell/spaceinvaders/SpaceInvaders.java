@@ -52,10 +52,10 @@ public class SpaceInvaders extends Game {
 	public static final int WIDTH = 640;
 	public static final int HEIGHT = 360;
 
-	public static double xOff = 0;
-	public static double yOff = 0;
-	public static double viewportWidth = SpaceInvaders.WIDTH;
-	public static double viewportHeight = SpaceInvaders.HEIGHT;
+	public static float xOff = 0;
+	public static float yOff = 0;
+	public static float viewportWidth = SpaceInvaders.WIDTH;
+	public static float viewportHeight = SpaceInvaders.HEIGHT;
 
 	public static final int UNIT = 10;//12;
 
@@ -97,9 +97,10 @@ public class SpaceInvaders extends Game {
 		initAssets();
 
 		// Camera setups
-		cam = new OrthographicCamera((float)viewportWidth, (float)viewportHeight);
+		cam = new OrthographicCamera(viewportWidth, viewportHeight);
 //		cam = new OrthographicCamera(WIDTH, HEIGHT);
-		cam.translate((float) viewportWidth / 2, (float) viewportHeight / 2);
+		cam.translate(viewportWidth / 2, viewportHeight / 2);
+		cam.translate(-xOff, -yOff);
 //		cam.translate(WIDTH / 2, HEIGHT / 2);
 		cam.update();
 
@@ -299,28 +300,29 @@ public class SpaceInvaders extends Game {
 
 	public void initXOffYOffVpWidthVpHeight(){
 		// TODO: extra width is working, now copy same logic into extra height
-		double deviceWidth = Gdx.graphics.getWidth();
-		double deviceHeight = Gdx.graphics.getHeight();
-		double deviceRatio = deviceWidth/deviceHeight;
-		double neededRatio = 16d/9d;
+		float deviceWidth = Gdx.graphics.getWidth();
+		float deviceHeight = Gdx.graphics.getHeight();
+		float deviceRatio = deviceWidth/deviceHeight;
+		float neededRatio = 16f/9f;
 		if(neededRatio < deviceRatio){
 			// device has extra width
-			double ourWidth = deviceHeight*(16d/9d);
-			double widthScale = deviceWidth/ourWidth;
-			xOff = (deviceWidth - ourWidth)/2d;
+			float ourWidth = deviceHeight*(16f/9f);
+			float widthScale = deviceWidth/ourWidth;
+			xOff = (deviceWidth - ourWidth)/2f;
 			yOff = 0;
+			viewportHeight = SpaceInvaders.HEIGHT;
 			viewportWidth = SpaceInvaders.WIDTH * widthScale;
-			System.out.println("extra width");
+//			xOff = (viewportWidth-SpaceInvaders.HEIGHT)/2;
 		}
 		else if(neededRatio > deviceRatio){
 			// device has extra height
-			double ourHeight = deviceWidth*(9d/16d);
-			double heightScale = deviceHeight/ourHeight;
+			float ourHeight = deviceWidth*(9f/16f);
+			float heightScale = deviceHeight/ourHeight;
 			xOff = 0;
-			yOff = (deviceHeight - ourHeight)/2d;
+//			yOff = (deviceHeight - ourHeight)/2f;
 			viewportWidth = SpaceInvaders.WIDTH;
 			viewportHeight = SpaceInvaders.HEIGHT * heightScale;
-			System.out.println("extra height");
+			yOff = (viewportHeight-SpaceInvaders.HEIGHT)/2;
 		}
 
 	}

@@ -120,7 +120,7 @@ public class Player {
     public void drawLives(ShapeRenderer sr) {
         float scale = 0.6f;
         float x = SpaceInvaders.UNIT;
-        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*(scale/2) - HEIGHT *scale;
+        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*(scale/2) - HEIGHT *scale + SpaceInvaders.yOff;
         sr.setColor(Color.WHITE);
         for(int i = 0; i < lives; ++i){
             for(int j = 0; j < rects.length; ++j) {
@@ -129,18 +129,19 @@ public class Player {
             x += WIDTH *scale + SpaceInvaders.UNIT;
         }
 
+        // TODO: just changed the x on these below to 10 from 0
         // bullet one
-        sr.rect(0, SpaceInvaders.UNIT / 3f, SpaceInvaders.UNIT * 12 * (bulletOneShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
+        sr.rect(10, SpaceInvaders.UNIT/3f -SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * (bulletOneShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
         // bullet two
         if(powerup == Powerup.DOUBLESHOT)
-            sr.rect(0, SpaceInvaders.UNIT, SpaceInvaders.UNIT * 12 * ( bulletTwoShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
+            sr.rect(10, SpaceInvaders.UNIT-SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * ( bulletTwoShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
 
     }
 
     public void drawScoreAndLivesTextAndPowerup(SpriteBatch sb){
         float scale = 0.6f;
         float x = (WIDTH * scale + SpaceInvaders.UNIT) * lives + SpaceInvaders.UNIT/2f;
-        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2);
+        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2) + SpaceInvaders.yOff;
         if(lives > 0) {
             //livesText
             font.draw(sb, "x " + lives, x, y, 20, 0, false);

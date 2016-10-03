@@ -20,7 +20,7 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  */
 public class MenuScreen extends GameScreen {
 
-    public static final Color BG_COLOR = new Color(0f, 0f, 0f, 0.9f);
+    public static final Color BG_COLOR = new Color(0.6f, 0.1f, 0.1f, 0.6f);
 
     private Button playButton;
 
@@ -62,7 +62,7 @@ public class MenuScreen extends GameScreen {
         transitionTime = 0;
 
         backgroundColor.set(BG_COLOR);
-        particleEffects.clear();
+        ParticleEffectPool.freeAll(particleEffects);
     }
 
     @Override
@@ -112,24 +112,18 @@ public class MenuScreen extends GameScreen {
 //            game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
 //        game.bgBatch.end();
 
-        game.gameport.apply(); // to show the actual screen being used, for other screen ratios
+//        game.gameport.apply(); // to show the actual screen being used, for other screen ratios
         // darken background with a 30% transparent black square
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
-        // TODO: replace this with darkening the texture image
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-//            game.sr.setColor(backgroundColor);
-            game.sr.setColor(Color.RED);
-//            game.sr.rect(0, 0, (float) SpaceInvaders.WIDTH, (float) SpaceInvaders.HEIGHT);
-            game.sr.rect(0, 0, (float)SpaceInvaders.viewportWidth, (float)SpaceInvaders.viewportHeight);
+        game.sr.setColor(backgroundColor);
+//            game.sr.rect(0, 0, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
+            game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
         game.sr.end();
 
 
-//        game.gameport.apply();
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-
-
-
             // draw and free particle effects
             for(int i = 0; i < particleEffects.size; ++i) {
                 if(particleEffects.get(i).isDead()) {

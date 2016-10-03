@@ -13,7 +13,8 @@ import com.badlogic.gdx.utils.Array;
 public class ParticleEffect {
 
     public static final float SPEED = 0.5f;
-    public static final int LIFETIME = 5;//2;
+//    public static final int LIFETIME = 5;
+    public static final int LIFETIME = 3;
 
     private float timeElapsed = 0;
 
@@ -115,10 +116,13 @@ public class ParticleEffect {
     }
 
     public void draw(ShapeRenderer sr){
-        if(LIFETIME-timeElapsed < 2.5)
-            sr.setColor( color.r, color.g, color.b, (LIFETIME-timeElapsed)/2.5f );
-        else
-            sr.setColor(color);
+//        if(((float)LIFETIME) - ((float)timeElapsed) < ((float)LIFETIME)/2f)
+//            sr.setColor( color.r, color.g, color.b, 0.5f - (LIFETIME-timeElapsed)/((float)LIFETIME)/2f );
+//        else
+//            sr.setColor(color);
+        float a = ((float)LIFETIME-timeElapsed)/((float)LIFETIME);
+        a *= 0.7;
+        sr.setColor( color.r, color.g, color.b, a );
         for(int i = 0; i < particles.length; ++i){
             particles[i].draw(sr);
         }

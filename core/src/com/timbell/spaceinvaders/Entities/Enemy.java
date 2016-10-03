@@ -40,8 +40,6 @@ public abstract class Enemy {
         useImageOne = true;
         this.swarm = swarm;
         this.index = index;
-//        this.hitSound = Gdx.audio.newSound(Gdx.files.internal("invaderkilled16bit.wav"));
-//        this.hitSound = Gdx.audio.newSound(Gdx.files.internal("glassSmashTrimmed.wav"));
     }
 
     public abstract void shoot(Bullet bullet);
@@ -50,7 +48,6 @@ public abstract class Enemy {
     public abstract ParticleEffect hit();
 
     public void die(){
-//        swarm.members.removeValue(this, true);
         dead = true;
         swarm.memberDied(index);
     }
@@ -62,7 +59,7 @@ public abstract class Enemy {
     }
 
     public boolean moveDown(){
-        rect.y -= SpaceInvaders.UNIT*2;
+        rect.y -= SpaceInvaders.UNIT;
         //return if it is to low, and therefore the player has lost the game
         return rect.y < PlayScreen.LOSE_HEIGHT;
     }

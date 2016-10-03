@@ -94,7 +94,7 @@ public class GameOverScreen extends GameScreen {
 
         transitionTime = 0;
         state = State.ENTERING;
-        particleEffects.clear();
+        ParticleEffectPool.freeAll(particleEffects);
     }
 
     public void update(float delta){
@@ -144,7 +144,8 @@ public class GameOverScreen extends GameScreen {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
         game.sr.setColor(backgroundColor);
-        game.sr.rect(0, 0, (float)SpaceInvaders.viewportWidth, (float)SpaceInvaders.viewportHeight);
+//        game.sr.rect(0, 0, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
+        game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
         retryButton.drawShape(game.sr, buttonTransparancy);
         mainMenuButton.drawShape(game.sr, buttonTransparancy);
         game.sr.end();

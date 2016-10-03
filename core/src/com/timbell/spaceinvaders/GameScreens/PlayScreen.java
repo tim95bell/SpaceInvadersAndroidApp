@@ -22,7 +22,7 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  */
 public class PlayScreen extends GameScreen {
 
-    public static final Color BG_COLOR = new Color(0f, 0f, 0f, 0.8f);
+    public static final Color BG_COLOR = new Color(0f, 0f, 0f, 1f);
     // TODO: fully implement BG_COLOR and mix
     public static final int LOSE_HEIGHT = Player.Y + Player.HEIGHT;
 
@@ -92,23 +92,26 @@ public class PlayScreen extends GameScreen {
             p1.killSpecialBullet();
             this.enterPos = -SpaceInvaders.WIDTH*2;
             this.transitionTime = 0;
-            freeAllParticleEffects();
+            ParticleEffectPool.freeAll(particleEffects);
 
             this.levelName = levels.peek().getName();
             layout.setText(font, levelName);
             swarm.loadLevel(levels.pop());
         }
         else{
-            // TODO: handle game win
+            changeScreen(SpaceInvaders.GAMEOVER_STATE);
         }
     }
 
     public void update(float delta){
-        // if all members are dead, then load the next level
-        if(swarm.getNumMembersAlive() == 0)
-            loadNextLevel();
 
         if(state == State.GAME) {
+            // if all members are dead, then load the next level
+            if(swarm.getNumMembersAlive() == 0) {
+                loadNextLevel();
+                return;
+            }
+
             // spawn a mothership ??
             if( (motherShip.getState() == MotherShip.State.DEAD)  &&  swarm.getNumTimesMovedDown() > 2  && (!p1.isDead()) ) {
                 if( Math.random()*10 <  ((double)0.5)*delta )
@@ -131,7 +134,7 @@ public class PlayScreen extends GameScreen {
             transitionTime += delta;
             if(transitionTime > transitionPeriod) {
 //                p1.reset();
-                freeAllParticleEffects();
+                ParticleEffectPool.freeAll(particleEffects);
                 game.changeScreen(SpaceInvaders.GAMEOVER_STATE);
             }
             SpaceInvaders.mix(BG_COLOR, GameOverScreen.BG_COLOR, transitionTime / transitionPeriod, backgroundColor);
@@ -172,20 +175,22 @@ public class PlayScreen extends GameScreen {
 
         game.gameport.apply();
         // TODO: replase this with jusp changing the texture to be darker
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        game.sr.begin(ShapeRenderer.ShapeType.Filled);
+        if( !backgroundColor.equals(BG_COLOR) ) {
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            game.sr.begin(ShapeRenderer.ShapeType.Filled);
             game.sr.setColor(backgroundColor);
-        game.sr.rect(0, 0, (float)SpaceInvaders.viewportWidth, (float)SpaceInvaders.viewportHeight);
-        game.sr.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+//            game.sr.rect(0, 0, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
+            game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
+            game.sr.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
 
         // Shape Drawing
+        Gdx.gl.glEnable(GL20.GL_BLEND);
         game.sr.begin(ShapeRenderer.ShapeType.Filled);
-            Gdx.gl.glEnable(GL20.GL_BLEND);
             // particles
             for(int i = particleEffects.size-1; i >= 0; --i)
                 particleEffects.get(i).draw(game.sr);
-            Gdx.gl.glDisable(GL20.GL_BLEND);
             // player bullets
             p1.drawBullets(game.sr);
             // swarm bullets
@@ -193,7 +198,12 @@ public class PlayScreen extends GameScreen {
             // player
             p1.draw(game.sr);
             p1.drawLives(game.sr);
+            // side bars
+            game.sr.setColor(1f,1f,1f,1f);
+            game.sr.rect(-5, 0 - SpaceInvaders.yOff, 5, SpaceInvaders.viewportHeight);
+            game.sr.rect(SpaceInvaders.WIDTH, 0-SpaceInvaders.yOff, 5, SpaceInvaders.viewportHeight);
         game.sr.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
 
 
         // Sprite Drawing
@@ -223,14 +233,6 @@ public class PlayScreen extends GameScreen {
             swarm.clearBullets();
         }
     }
-
-    public void freeAllParticleEffects(){
-        for(int i = particleEffects.size-1; i >= 0; --i){
-            ParticleEffectPool.free(particleEffects.get(i));
-            particleEffects.removeIndex(i);
-        }
-    }
-
 
     //-----------------SCREEN-----------------//
     @Override

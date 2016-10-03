@@ -11,6 +11,8 @@ public class Level {
     public int[] members;
     private String name;
 
+    // TODO: levels should shoot less. They should increase their speed more for harder levels rather than increasing shooting more.
+
     public Level(String name, float minMovePeriod, float maxMovePeriod,
                  float minShootChance, float maxShootChance,
                  int[] members){
@@ -112,6 +114,7 @@ public class Level {
     public static Array<Level> getLevels(){
         Array<Level> levels = new Array<Level>(true, 5);
         levels.addAll( level5(), level4(), level3(), level2(), level1() );
+//        levels.addAll( levelTest() );
         return levels;
     }
 

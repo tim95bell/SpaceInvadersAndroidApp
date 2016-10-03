@@ -30,6 +30,13 @@ public class ParticleEffectPool {
             largeEffect.add(pe);
     }
 
+    public static void freeAll(Array<ParticleEffect> particleEffects){
+        for(int i = particleEffects.size-1; i >= 0; --i){
+            free(particleEffects.get(i));
+            particleEffects.removeIndex(i);
+        }
+    }
+
     public static ParticleEffect getSmall(){
         if(smallEffect.size > 0)
             return smallEffect.pop();

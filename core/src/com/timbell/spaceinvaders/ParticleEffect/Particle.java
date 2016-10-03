@@ -92,14 +92,14 @@ public class Particle{
                 vel.x *= -1;
         }
 
-        if(loc.y < 0) {
-            loc.y = 0;
+        if(loc.y < -SpaceInvaders.yOff) {
+            loc.y = -SpaceInvaders.yOff;
             vel.y *= -0.5;
             if(vel.y < 0)
                 vel.y *= -1;
         }
-        else if(loc.y > SpaceInvaders.HEIGHT){
-            loc.y = SpaceInvaders.HEIGHT;
+        else if(loc.y > SpaceInvaders.HEIGHT+SpaceInvaders.yOff){
+            loc.y = SpaceInvaders.HEIGHT+SpaceInvaders.yOff;
             vel.y *= -0.5;
             if(vel.y > 0)
                 vel.y *= -1;

@@ -93,7 +93,7 @@ public class Collision {
             // roof/walls
             if( bullet.getX() < 0 ||
                     bullet.getX()+bullet.getWidth() > SpaceInvaders.WIDTH ||
-                    bullet.getY()+bullet.getHeight() > SpaceInvaders.HEIGHT) {
+                    bullet.getY()+bullet.getHeight() > SpaceInvaders.HEIGHT + SpaceInvaders.yOff) { // TODO: why does yoff need to by multiplied by 2???
                 newParticleEffects.add(bullet.hit());
                 p1.removeBullet(i);
                 // TODO: fix up gong playing
@@ -124,7 +124,7 @@ public class Collision {
                 }
             }
             // mothership
-            if( !(motherShip.getState() == MotherShip.State.DEAD) ){
+            if( motherShip.getState() == MotherShip.State.ALIVE ){
                 if(motherShip.getRect().overlaps(bullet.getRect())){
                     newParticleEffects.add(bullet.hit());
                     p1.removeBullet(i);
@@ -176,7 +176,7 @@ public class Collision {
             // edges
             if( p1SpecialBullet.getX() < 0 ||
                     p1SpecialBullet.getX()+p1SpecialBullet.getWidth() > SpaceInvaders.WIDTH ||
-                    p1SpecialBullet.getY()+p1SpecialBullet.getHeight() > SpaceInvaders.HEIGHT) {
+                    p1SpecialBullet.getY()+p1SpecialBullet.getHeight() > SpaceInvaders.HEIGHT + SpaceInvaders.yOff) {
                 newParticleEffects.add(p1SpecialBullet.hitEdge());
                 p1SpecialBullet.die();
                 gong.play(SpaceInvaders.volume);
@@ -192,7 +192,6 @@ public class Collision {
                         ParticleEffect enemyParticlleEffect = enemy.hit();
                         if (enemyParticlleEffect != null)
                             newParticleEffects.add(enemyParticlleEffect);
-                        System.out.println("members: " + swarm.getNumMembersAlive());
                     }
                 }
             }
@@ -219,7 +218,7 @@ public class Collision {
             //floor/walls
             if( bullet.getX() < 0 ||
                     bullet.getX()+bullet.getWidth() > SpaceInvaders.WIDTH ||
-                    bullet.getY() < 0) {
+                    bullet.getY() < -SpaceInvaders.yOff) {
                 newParticleEffects.add( bullet.hit() );
                 swarm.removeBullet(i);
             }
