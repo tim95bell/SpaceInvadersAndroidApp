@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.timbell.spaceinvaders.GameScreens.GameOverScreen;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
+import com.timbell.spaceinvaders.ParticleEffect.AttractingParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
@@ -67,19 +68,16 @@ public class Player {
     private Powerup powerup;
     private float powerupTimeLeft;
 
-    private BitmapFont font;
-    private GlyphLayout layout;
-
     private float respawnTimer;
     private final float respawnTime = 4;
+
+    private PlayerHUD hud;
+//    private AttractingParticleEffect attractingParticleEffect;
 
     public Player(){
         this.loc = new Vector2(SpaceInvaders.WIDTH/2 - WIDTH /2f, Y);
 
         this.rects = new Rectangle[] {
-//            new Rectangle(0, 0, WIDTH, WIDTH / 3),
-//            new Rectangle(WIDTH / 2f - WIDTH / 8f, WIDTH / 3f, WIDTH / 4f, WIDTH / 5f),
-//            new Rectangle(WIDTH / 2f - WIDTH / 26f, WIDTH / 3f + WIDTH / 5f, WIDTH / 13f, WIDTH / 13f)
             new Rectangle(0, 0, WIDTH, (5f/8f)* HEIGHT),
             new Rectangle(WIDTH *0.5f - WIDTH *(3f/13f)/2f, (5f/8f)* HEIGHT, WIDTH *(3f/13f), (2f/8f)* HEIGHT),
             new Rectangle(WIDTH *0.5f - WIDTH *(1f/13f)/2f, (7f/8f)* HEIGHT, WIDTH *(1f/13f), (1f/8f)* HEIGHT)
@@ -87,12 +85,9 @@ public class Player {
 
         this.bullets = new Bullet[]{new Bullet(), new Bullet()};
         this.specialBullet = new SpecialBullet();
+        this.hud = new PlayerHUD(this);
+//        this.attractingParticleEffect = new AttractingParticleEffect();
 
-        this.font = new BitmapFont();
-        // smooth font
-        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        font.getData().setScale(1.1f);
-        this.layout = new GlyphLayout();
         reset();
     }
 
@@ -108,6 +103,7 @@ public class Player {
         this.bulletTwoShootTime = shootPeriod;
         this.state = State.NORMAL;
         this.score = 0;
+//        this.attractingParticleEffect.die();
     }
 
     public void setCurrentScreen(GameScreen currentScreen){
@@ -152,56 +148,12 @@ public class Player {
         }
     }
 
-    public void drawLives(ShapeRenderer sr, float transparency) {
-        float scale = 0.6f;
-        float x = SpaceInvaders.UNIT;
-        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*(scale/2) - HEIGHT *scale + SpaceInvaders.yOff;
-        sr.setColor(1,1,1,transparency);
-        for(int i = 0; i < lives; ++i){
-            for(int j = 0; j < rects.length; ++j) {
-                sr.rect(x + rects[j].getX()*scale, y + rects[j].getY()*scale, rects[j].getWidth()*scale, rects[j].getHeight()*scale);
-            }
-            x += WIDTH *scale + SpaceInvaders.UNIT;
-        }
-
-        // bullet one
-        sr.rect(10, SpaceInvaders.UNIT / 3f - SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * (bulletOneShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
-        // bullet two
-        if(powerup == Powerup.DOUBLESHOT)
-            sr.rect(10, SpaceInvaders.UNIT-SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * ( bulletTwoShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
-
+    public void drawHUDShapes(ShapeRenderer sr, float transparency){
+        hud.drawShapes(sr, transparency);
     }
 
-    public void drawScoreAndLivesTextAndPowerup(SpriteBatch sb, float transparency){
-        float scale = 0.6f;
-        float x = (WIDTH * scale + SpaceInvaders.UNIT) * lives + SpaceInvaders.UNIT/2f;
-        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2) + SpaceInvaders.yOff;
-        font.setColor(1,1,1,transparency);
-        if(lives > 0) {
-            //livesText
-            font.draw(sb, "x " + lives, x, y, 20, 0, false);
-        }
-        //score
-        layout.setText(font, "Score: " + score);
-        x = SpaceInvaders.WIDTH/2 - layout.width / 2;
-        font.draw(sb, layout, x, y);
-        // powerup
-        if(powerup != Powerup.NONE){
-            layout.setText(font, String.format("%s : %.0f", getPowerupString(powerup), powerupTimeLeft));
-            font.draw(sb, layout, SpaceInvaders.WIDTH - layout.width / 4 * 5, y);
-        }
-    }
-
-    // TODO get this working
-    public void drawPowerupCover(ShapeRenderer sr){
-        // this must be called before drawScoreAndLivesTextAndPowerup()
-        float scale = 0.6f;
-        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2) + SpaceInvaders.yOff;
-        if(powerup != Powerup.NONE){
-            layout.setText( font, String.format("%s : %.0f", getPowerupString(powerup), powerupTimeLeft) );
-            sr.setColor(currentScreen.BG_COLOR);
-            sr.rect(SpaceInvaders.WIDTH - layout.width / 4 * 5, y-layout.height, layout.width, layout.height);
-        }
+    public void drawHUDText(SpriteBatch sb, float transparency){
+        hud.drawText(sb, transparency);
     }
 
     public void update(float delta) {
@@ -215,6 +167,7 @@ public class Player {
                 return;
         }
 
+        hud.update(delta);
         move(delta);
 
         // handle powerups
@@ -381,7 +334,7 @@ public class Player {
     }
 
     // TODO: stop these news
-    public Rectangle[] getRects(Rectangle[] outRects){
+    public void getLocationRects(Rectangle[] outRects){
         outRects[0].set(rects[0]);
         outRects[1].set(rects[1]);
         outRects[2].set(rects[2]);
@@ -389,8 +342,17 @@ public class Player {
             outRects[i].x += loc.x;
             outRects[i].y += loc.y;
         }
-        return outRects;
     }
+
+    public Rectangle[] getShapeRects(){
+        return rects;
+    }
+
+    public Color getBackgroundColor(){
+        return ((PlayScreen)currentScreen).getBackgroundColor();
+    }
+
+
 
     public float getX(){
         return loc.x;
@@ -449,6 +411,12 @@ public class Player {
         return specialBullet;
     }
 
+    public void setAttractingParticleEffect(float x, float y, float xSpread, float ySpread, Color color){
+//        this.attractingParticleEffect.reset((int)x, (int)y, (int)xSpread, (int)ySpread, color, hud.getAttractorX(), hud.getAttractorY());
+//        hud.setAttractingParticleEffect(this.attractingParticleEffect);
+        hud.setAttractingParticleEffect((int) x, (int) y, (int) xSpread, (int) ySpread, color);
+    }
+
     public void killSpecialBullet() {
         specialBullet.die();
     }
@@ -474,6 +442,22 @@ public class Player {
 
     public boolean isRespawning(){
         return state == State.RESPAWNING;
+    }
+
+    public float getShootTimePercent(){
+        return bulletOneShootTime / shootPeriod;
+    }
+
+    public Powerup getPowerup(){
+        return powerup;
+    }
+
+    public int getLives(){
+        return lives;
+    }
+
+    public float getPowerupTimeLeft(){
+        return powerupTimeLeft;
     }
 
 }

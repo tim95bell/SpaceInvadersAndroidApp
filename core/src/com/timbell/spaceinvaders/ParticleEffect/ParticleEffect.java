@@ -111,15 +111,12 @@ public class ParticleEffect {
             dead = true;
 
         for(int i = 0; i < particles.length; ++i){
+            particles[i].applyGravity(delta);
             particles[i].update(delta);
         }
     }
 
     public void draw(ShapeRenderer sr){
-//        if(((float)LIFETIME) - ((float)timeElapsed) < ((float)LIFETIME)/2f)
-//            sr.setColor( color.r, color.g, color.b, 0.5f - (LIFETIME-timeElapsed)/((float)LIFETIME)/2f );
-//        else
-//            sr.setColor(color);
         float a = ((float)LIFETIME-timeElapsed)/((float)LIFETIME);
         a *= 0.7;
         sr.setColor( color.r, color.g, color.b, a );

@@ -202,7 +202,7 @@ public class PlayScreen extends GameScreen {
 
             if( !(motherShip.getState() == MotherShip.State.DEAD) )
                 motherShip.draw(game.sb);
-            p1.drawScoreAndLivesTextAndPowerup(game.sb, fadeTransparancy);
+            p1.drawHUDText(game.sb, fadeTransparancy);
         game.sb.end();
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -216,7 +216,7 @@ public class PlayScreen extends GameScreen {
                 // player
                 p1.drawBullets(game.sr);
                 p1.draw(game.sr);
-                p1.drawLives(game.sr, fadeTransparancy);
+                p1.drawHUDShapes(game.sr, fadeTransparancy);
 //                p1.drawPowerupCover(game.sr);
                 // side bars
 //                game.sr.setColor(1f, 1f, 1f, 1f);
@@ -247,6 +247,10 @@ public class PlayScreen extends GameScreen {
     public void onPlayerRespawnEnd(){
         motherShip.resume();
         swarm.resume();
+    }
+
+    public Color getBackgroundColor(){
+        return backgroundColor;
     }
 
     //-----------------SCREEN-----------------//

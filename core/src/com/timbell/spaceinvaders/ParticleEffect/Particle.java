@@ -47,14 +47,20 @@ public class Particle{
 
 
     public void update(float delta){
-        //gravity
-        vel.y -= 0.05 *delta*60;
-        if(vel.y > 10)
-            vel.y = 10;
-        else if(vel.y < -10)
-            vel.y = -10;
+        if(vel.len() > 10) {
+            vel.nor();
+            vel.scl(10);
+        }
 
         loc.add(vel.x * delta*60, vel.y * delta*60);
+    }
+
+    public void applyForce(float x, float y){
+        vel.add(x, y);
+    }
+
+    public void applyGravity(float delta){
+        vel.y -= 0.05 *delta*60;
     }
 
     public void draw(ShapeRenderer sr){
@@ -113,6 +119,14 @@ public class Particle{
 
     public float getY(){
         return loc.y;
+    }
+
+    public float getVelX(){
+        return vel.x;
+    }
+
+    public void slowXVel(){
+        vel.x *= 0.95;
     }
 
 }// END Class Particle

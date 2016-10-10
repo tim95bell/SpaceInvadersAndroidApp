@@ -26,6 +26,7 @@ public class MotherShip {
     private static final float HEIGHT = SpaceInvaders.UNIT*1.5f;
     public static TextureRegion image;
     public static Sound sound;
+    public static final Color COLOR = Color.ORANGE;
 
     private Rectangle rect;
     private float xSpeed;
@@ -85,7 +86,7 @@ public class MotherShip {
 
     public void draw(SpriteBatch sb) {
         if (state == State.ALIVE || state == State.PAUSED) {
-            sb.setColor(Color.ORANGE);
+            sb.setColor(COLOR);
             sb.draw(image, rect.x, rect.y, rect.width, rect.height);
         }
         else if(state == State.DYING){

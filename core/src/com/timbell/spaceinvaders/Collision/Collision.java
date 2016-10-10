@@ -133,7 +133,13 @@ public class Collision {
                     p1.removeBullet(i);
                     // TODO : Create powerup
                     String powerupStr = p1.generatePowerup();
-                    newParticleEffects.add(motherShip.hit(powerupStr));
+//                    newParticleEffects.add(motherShip.hit(powerupStr));
+                    motherShip.hit(powerupStr);
+                    float x = motherShip.getRect().getX();
+                    float y = motherShip.getRect().getY();
+                    float width = motherShip.getRect().getWidth();
+                    float height = motherShip.getRect().getHeight();
+                    p1.setAttractingParticleEffect(x+width/2, y+height/2, width, height, MotherShip.COLOR);
                     continue;
                 }
             }
@@ -158,7 +164,7 @@ public class Collision {
 
                 //player
                 if( !(p1.isDead() || p1.isRespawning())) {
-                    p1.getRects(recievePlayerRectangles);
+                    p1.getLocationRects(recievePlayerRectangles);
                     for (int j = 0; j < recievePlayerRectangles.length; ++j) {
                         if (recievePlayerRectangles[j].contains(pX, pY)) {
                             particles[p].bounce(recievePlayerRectangles[j].getX(), recievePlayerRectangles[j].getY(), (int) recievePlayerRectangles[j].getWidth(), (int) recievePlayerRectangles[j].getHeight());
@@ -244,7 +250,7 @@ public class Collision {
                 swarm.removeBullet(i);
             }
             // player
-            p1.getRects(recievePlayerRectangles);
+            p1.getLocationRects(recievePlayerRectangles);
             for(int j = 0; j < recievePlayerRectangles.length; ++j) {
                 if (recievePlayerRectangles[j].overlaps(bullet.getRect())) {
                     newParticleEffects.add(p1.hit());
@@ -329,7 +335,7 @@ public class Collision {
                 float pY = particles[p].getY();
 
                 //player
-                p1.getRects(recievePlayerRectangles);
+                p1.getLocationRects(recievePlayerRectangles);
                 for(int j = 0; j < recievePlayerRectangles.length; ++j) {
                     if (recievePlayerRectangles[j].contains(pX, pY)) {
                         particles[p].bounce(recievePlayerRectangles[j].getX(), recievePlayerRectangles[j].getY(), (int)recievePlayerRectangles[j].getWidth(), (int)recievePlayerRectangles[j].getHeight());
@@ -432,7 +438,7 @@ public class Collision {
                 float pY = particles[p].getY();
 
                 //player
-                p1.getRects(recievePlayerRectangles);
+                p1.getLocationRects(recievePlayerRectangles);
                 for(int j = 0; j < recievePlayerRectangles.length; ++j) {
                     if (recievePlayerRectangles[j].contains(pX, pY)) {
                         particles[p].bounce(recievePlayerRectangles[j].getX(), recievePlayerRectangles[j].getY(), (int)recievePlayerRectangles[j].getWidth(), (int)recievePlayerRectangles[j].getHeight());
