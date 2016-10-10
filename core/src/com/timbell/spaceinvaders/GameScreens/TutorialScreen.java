@@ -14,7 +14,7 @@ import com.timbell.spaceinvaders.SpaceInvaders;
 /**
  * Created by timbell on 10/10/16.
  */
-public class TutorialScreen extends GameScreen {
+public class TutorialScreen { //extends GameScreen {
     public static final Color BG_COLOR = new Color(0.1f, 0.1f, 6.1f, 0.6f);
 
     private Player p1;
@@ -42,7 +42,7 @@ public class TutorialScreen extends GameScreen {
 
     public TutorialScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects, Collision collision){
 
-        this.game = game;
+//        this.game = game;
         this.p1 = p1;
         this.particleEffects = particleEffects;
 //        this.collision = collision;

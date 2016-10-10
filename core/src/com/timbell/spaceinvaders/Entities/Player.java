@@ -44,6 +44,7 @@ public class Player {
 
     public static Sound shootSound;
     public static Sound hitSound;
+    public static Sound gong;
 
     private GameScreen currentScreen;
 
@@ -333,7 +334,56 @@ public class Player {
         center();
     }
 
-    // TODO: stop these news
+    public ParticleEffect[] bulletsBounds(){
+        ParticleEffect[] particleEffects = new ParticleEffect[3];
+        int count = 0;
+
+        // bullet 2
+        if(numBullets > 1) {
+            if (bullets[1].getX() < 0 ||
+                    bullets[1].getX() + bullets[1].getWidth() > SpaceInvaders.WIDTH ||
+                    bullets[1].getY() + bullets[1].getHeight() > SpaceInvaders.HEIGHT) {
+                particleEffects[0] = bullets[1].hit();
+                removeBullet(1);
+                gong.play(SpaceInvaders.volume);
+                count++;
+            }
+        }
+        // bullet 1
+        if(numBullets > 0){
+            if (bullets[0].getX() < 0 ||
+                    bullets[0].getX() + bullets[0].getWidth() > SpaceInvaders.WIDTH ||
+                    bullets[0].getY() + bullets[0].getHeight() > SpaceInvaders.HEIGHT) {
+                particleEffects[1] = bullets[0].hit();
+                removeBullet(0);
+                gong.play(SpaceInvaders.volume);
+                count++;
+            }
+        }
+        // special bullet
+        if( !specialBullet.isDead() ) {
+            if (specialBullet.getX() < 0 ||
+                    specialBullet.getX() + specialBullet.getWidth() > SpaceInvaders.WIDTH ||
+                    specialBullet.getY() + specialBullet.getHeight() > SpaceInvaders.HEIGHT + SpaceInvaders.yOff) {
+                particleEffects[2] = specialBullet.hit();
+                specialBullet.die();
+                gong.play(SpaceInvaders.volume);
+                count++;
+            }
+        }
+
+        ParticleEffect[] answer = new ParticleEffect[count];
+        int j = 0;
+        for(int i = 0; i < particleEffects.length; ++i){
+            if(particleEffects[i] != null){
+                answer[j] = particleEffects[i];
+                ++j;
+            }
+        }
+
+        return answer;
+    }
+
     public void getLocationRects(Rectangle[] outRects){
         outRects[0].set(rects[0]);
         outRects[1].set(rects[1]);
@@ -459,5 +509,6 @@ public class Player {
     public float getPowerupTimeLeft(){
         return powerupTimeLeft;
     }
+    public State getState() { return state; }
 
 }

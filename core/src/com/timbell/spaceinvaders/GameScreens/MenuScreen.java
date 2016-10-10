@@ -8,10 +8,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.Collision.Collision;
+import com.timbell.spaceinvaders.Entities.Bullet;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Player;
+import com.timbell.spaceinvaders.ParticleEffect.Particle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
@@ -27,40 +30,15 @@ public class MenuScreen extends GameScreen {
 
     private Button playButton;
 
-    private Player p1;
-
-    private Array<ParticleEffect> particleEffects;
-
-    private Color backgroundColor;
-
-    private final float transitionPeriod = 5;
-    private float transitionTime;
-
-    private Collision collision;
-
-    private State state;
-
     private BitmapFont highScoreFont;
     private GlyphLayout highScoreLayout;
     private String highScoreText;
 
-    public enum State{
-        ENTERING, NORMAL, TRANSITION_PLAY
-    }
 
-
-    public MenuScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects, Collision collision){
-
-        this.game = game;
-        this.p1 = p1;
-        this.particleEffects = particleEffects;
-        this.collision = collision;
-
-        this.backgroundColor = new Color();
+    public MenuScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects){
+        super(game, p1, particleEffects);
 
         playButton = new Button(SpaceInvaders.WIDTH/2f - 150f/2f, SpaceInvaders.HEIGHT/2f - 150f/2f + SpaceInvaders.UNIT*2, 150, new Color(0.576f, 0.769f, 0.49f, 1f), Color.BLACK, Button.ButtonSymbol.PLAY);
-
-        collision.addMenuScreenObjects(this, playButton);
 
         this.highScoreFont = new BitmapFont();
         // smooth font
@@ -70,15 +48,11 @@ public class MenuScreen extends GameScreen {
     }
 
     public void init(){
-        playButton.reset();
-        state = State.ENTERING;
-        transitionTime = 0;
+        super.init(BG_COLOR);
 
-        backgroundColor.set(BG_COLOR);
-        ParticleEffectPool.freeAll(particleEffects);
-        p1.setCurrentScreen(this);
-
+        this.playButton.reset();
         this.highScoreText = "High Score: "+game.getHighScore();
+        p1.setState(Player.State.NORMAL);
     }
 
     @Override
@@ -86,25 +60,14 @@ public class MenuScreen extends GameScreen {
         p1.shoot();
     }
 
-    public void changeScreen(int screen){
-        if(screen < 0 || screen > 3)
-            return;
-
-        if(screen == SpaceInvaders.PLAY_STATE) {
-            p1.setState(Player.State.ENTERING);
-            state = State.TRANSITION_PLAY;
-            transitionTime = 0;
-        }
-    }
-
     public void update(float delta){
-        if(state == State.ENTERING){
+        if(state == STATE_ENTERING){
             transitionTime += delta;
             if(transitionTime > transitionPeriod) {
-                state = State.NORMAL;
+                state = STATE_NORMAL;
             }
         }
-        else if(state == State.TRANSITION_PLAY){
+        else if(state == STATE_TRANSITION_PLAYSCREEN){
             transitionTime += delta;
             SpaceInvaders.mix(BG_COLOR, PlayScreen.BG_COLOR, transitionTime/transitionPeriod, backgroundColor);
             if(transitionTime > transitionPeriod) {
@@ -113,14 +76,14 @@ public class MenuScreen extends GameScreen {
         }
 
         p1.update(delta);
-        particleEffects.addAll(collision.checkMenuCollision());
+        collision();
     }
 
     public void draw(float delta){
         float fadeTransparancy = 1f;
-        if(state == State.ENTERING)
+        if(state == STATE_ENTERING)
             fadeTransparancy = transitionTime/transitionPeriod;
-        else if(state == State.TRANSITION_PLAY){
+        else if(state == STATE_TRANSITION_PLAYSCREEN){
             fadeTransparancy = 1f - transitionTime/transitionPeriod;
         }
 
@@ -146,13 +109,17 @@ public class MenuScreen extends GameScreen {
                 // player
                 p1.drawBullets(game.sr);
                 p1.draw(game.sr);
+                // side bars
+                game.sr.setColor(1f,1f,1f,0.25f);
+                game.sr.rect(0 - SpaceInvaders.xOff, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
+                game.sr.rect(SpaceInvaders.WIDTH, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
                 // draw play button
-        playButton.drawShape(game.sr, fadeTransparancy);
+                playButton.drawShape(game.sr, fadeTransparancy);
             game.sr.end();
 
             game.sb.begin();
                 // draw play button symbol
-        playButton.drawSymbol(game.sb, fadeTransparancy);
+                playButton.drawSymbol(game.sb, fadeTransparancy);
                 // high score text
                 highScoreFont.setColor(1,  1, 1, fadeTransparancy);
                 highScoreLayout.setText(highScoreFont, highScoreText);
@@ -162,18 +129,60 @@ public class MenuScreen extends GameScreen {
     }
 
     @Override
-    public void render(float delta) {
-        update(delta);
-        draw(delta);
-    }
-
-    @Override
     public void dispose() {
 //        testButton = null;
 //        particleEffects = null;
 //        buttons = null;
 //        collision = null;
     }
+
+    public void collision(){
+        //playerBullets and roof/walls
+        particleEffects.addAll(p1.bulletsBounds());
+
+        //particles and buttons, player, bounds, sheilds
+        for(int i = 0; i < particleEffects.size; ++i){
+            Particle[] particles = particleEffects.get(i).particles;
+
+            for(int p = 0; p < particles.length; ++p) {
+                float pX = particles[p].getX();
+                float pY = particles[p].getY();
+
+                //player
+                p1.getLocationRects(recievePlayerRectangles);
+                for(int j = 0; j < recievePlayerRectangles.length; ++j) {
+                    if (recievePlayerRectangles[j].contains(pX, pY)) {
+                        particles[p].bounce(recievePlayerRectangles[j].getX(), recievePlayerRectangles[j].getY(), (int)recievePlayerRectangles[j].getWidth(), (int)recievePlayerRectangles[j].getHeight());
+                    }
+                }
+
+                //bounds
+                particles[p].bounds();
+
+                // buttons
+                // looks awesome without visible
+                if (playButton.visible && playButton.getRect().contains(pX, pY)) {
+                    particles[p].bounce(playButton.getX(), playButton.getY(), (int) playButton.getSize(), (int) playButton.getSize());
+                }
+
+                //sheilds
+
+            }
+        } // end particles loop
+
+        // player bullets and buttons,
+        for(int i = p1.getNumBullets()-1; i >= 0; --i) {
+            Rectangle bulletRect = p1.bullets[i].getRect();
+
+            if (playButton.visible && bulletRect.overlaps(playButton.getRect())) {
+                particleEffects.addAll(playButton.hit(), 0, 2);
+                particleEffects.add(p1.bullets[i].hit());
+                p1.removeBullet(i);
+                changeScreen(SpaceInvaders.PLAY_STATE);
+            }
+        }
+    } // end collision()
+
 
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////

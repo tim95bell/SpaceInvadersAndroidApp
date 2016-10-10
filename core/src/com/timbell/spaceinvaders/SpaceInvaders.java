@@ -45,6 +45,7 @@ public class SpaceInvaders extends Game {
 	public static final int MENU_STATE = 0;
 	public static final int PLAY_STATE = 1;
 	public static final int GAMEOVER_STATE = 2;
+	public static final int TUTORIAL_STATE = 3;
 
 	public static final int WIDTH = 640;
 	public static final int HEIGHT = 360;
@@ -129,9 +130,9 @@ public class SpaceInvaders extends Game {
 		Collision collision = new Collision(p1, particleEffects);
 		screens = new GameScreen[3];
 		currentState = MENU_STATE;
-		screens[MENU_STATE] = new MenuScreen(this, p1, particleEffects, collision);
-		screens[PLAY_STATE] = new PlayScreen(this, p1, particleEffects, collision);
-		screens[GAMEOVER_STATE] = new GameOverScreen(this, p1, particleEffects, collision);
+		screens[MENU_STATE] = new MenuScreen(this, p1, particleEffects);
+		screens[PLAY_STATE] = new PlayScreen(this, p1, particleEffects);
+		screens[GAMEOVER_STATE] = new GameOverScreen(this, p1, particleEffects);
 		screens[currentState].init();
 		setScreen(screens[currentState]);
 
@@ -162,7 +163,7 @@ public class SpaceInvaders extends Game {
 
 		Button.hitSound = Enemy.hitSound = Gdx.audio.newSound(Gdx.files.internal("light_bulb_smash.wav"));
 		MotherShip.sound = Gdx.audio.newSound(Gdx.files.internal("motherShip2Trimmed.wav"));
-		Collision.gong = Gdx.audio.newSound(Gdx.files.internal("gongTrimmed.wav"));
+		Player.gong = Gdx.audio.newSound(Gdx.files.internal("gongTrimmed.wav"));
 		Player.shootSound = Gdx.audio.newSound( Gdx.files.internal("enemyShoot.wav"));
 		Player.hitSound = Gdx.audio.newSound( Gdx.files.internal("explosion16bit.wav"));
 
@@ -184,7 +185,7 @@ public class SpaceInvaders extends Game {
 	public void dispose(){
 		Button.hitSound.dispose();
 		MotherShip.sound.dispose();
-		Collision.gong.dispose();
+		Player.gong.dispose();
 		Player.shootSound.dispose();
 		Player.hitSound.dispose();
 
