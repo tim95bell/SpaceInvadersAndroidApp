@@ -2,6 +2,7 @@ package com.timbell.spaceinvaders.Entities;
 
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -18,7 +19,7 @@ import com.timbell.spaceinvaders.SpaceInvaders;
 public class MotherShip {
 
     public enum State{
-        ALIVE, DYING, DEAD
+        ALIVE, DYING, DEAD, PAUSED
     }
 
     private static final float WIDTH = SpaceInvaders.UNIT*4;
@@ -40,12 +41,13 @@ public class MotherShip {
     private float dyingTime;
 
 
-
     public MotherShip(){
         this.state = State.DEAD;
         this.rect = new Rectangle(0, SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * 4, WIDTH, HEIGHT);
         startOffset = 30f;
         this.font = new BitmapFont();
+        // smooth font
+        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         font.getData().setScale(1f);
         this.layout = new GlyphLayout();
     }
@@ -82,7 +84,7 @@ public class MotherShip {
     }
 
     public void draw(SpriteBatch sb) {
-        if (state == State.ALIVE) {
+        if (state == State.ALIVE || state == State.PAUSED) {
             sb.setColor(Color.ORANGE);
             sb.draw(image, rect.x, rect.y, rect.width, rect.height);
         }
@@ -114,6 +116,24 @@ public class MotherShip {
         ParticleEffect particleEffect = ParticleEffectPool.getSmall();
         particleEffect.reset(0, (int)rect.x, (int)rect.y, (int)rect.width, (int)rect.height, Color.ORANGE);
         return particleEffect;
+    }
+
+    public void pause(){
+        if(state == State.ALIVE) {
+            sound.pause();
+            state = State.PAUSED;
+        }
+    }
+
+    public void resume(){
+        if(state == State.PAUSED) {
+            sound.resume();
+            state = State.ALIVE;
+        }
+    }
+
+    public boolean isAlive(){
+        return state == State.ALIVE;
     }
 
     public Rectangle getRect(){

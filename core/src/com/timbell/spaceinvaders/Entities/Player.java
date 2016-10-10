@@ -4,12 +4,16 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.timbell.spaceinvaders.GameScreens.GameOverScreen;
+import com.timbell.spaceinvaders.GameScreens.GameScreen;
+import com.timbell.spaceinvaders.GameScreens.PlayScreen;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
@@ -40,6 +44,8 @@ public class Player {
     public static Sound shootSound;
     public static Sound hitSound;
 
+    private GameScreen currentScreen;
+
     // these are relative to loc
     private Rectangle[] rects;
 
@@ -64,6 +70,9 @@ public class Player {
     private BitmapFont font;
     private GlyphLayout layout;
 
+    private float respawnTimer;
+    private final float respawnTime = 4;
+
     public Player(){
         this.loc = new Vector2(SpaceInvaders.WIDTH/2 - WIDTH /2f, Y);
 
@@ -80,6 +89,8 @@ public class Player {
         this.specialBullet = new SpecialBullet();
 
         this.font = new BitmapFont();
+        // smooth font
+        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         font.getData().setScale(1.1f);
         this.layout = new GlyphLayout();
         reset();
@@ -99,8 +110,32 @@ public class Player {
         this.score = 0;
     }
 
+    public void setCurrentScreen(GameScreen currentScreen){
+        this.currentScreen =  currentScreen;
+    }
+
     public void draw(ShapeRenderer sr){
-        sr.setColor(color);
+        if( isRespawning() ){
+            float alpha;
+            float startFlashingAt = respawnTime/8;
+            if(respawnTime < startFlashingAt){
+                alpha = 0;
+            }
+            else {
+                float flashTime = (respawnTime-startFlashingAt)/3;
+                alpha = ((respawnTimer-startFlashingAt) % flashTime) * (2 / flashTime);
+                if (alpha > 1)
+                    alpha = 1 - (alpha - 1);
+            }
+
+            sr.setColor(color.r, color.g, color.b, alpha);
+        }
+        else if(state == State.DEAD){
+            return;
+        }
+        else {
+            sr.setColor(color);
+        }
 
         for(int i = 0; i < rects.length; ++i) {
             sr.rect(loc.x + rects[i].getX(), loc.y + rects[i].getY(), rects[i].getWidth(), rects[i].getHeight());
@@ -117,11 +152,11 @@ public class Player {
         }
     }
 
-    public void drawLives(ShapeRenderer sr) {
+    public void drawLives(ShapeRenderer sr, float transparency) {
         float scale = 0.6f;
         float x = SpaceInvaders.UNIT;
         float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*(scale/2) - HEIGHT *scale + SpaceInvaders.yOff;
-        sr.setColor(Color.WHITE);
+        sr.setColor(1,1,1,transparency);
         for(int i = 0; i < lives; ++i){
             for(int j = 0; j < rects.length; ++j) {
                 sr.rect(x + rects[j].getX()*scale, y + rects[j].getY()*scale, rects[j].getWidth()*scale, rects[j].getHeight()*scale);
@@ -129,19 +164,19 @@ public class Player {
             x += WIDTH *scale + SpaceInvaders.UNIT;
         }
 
-        // TODO: just changed the x on these below to 10 from 0
         // bullet one
-        sr.rect(10, SpaceInvaders.UNIT/3f -SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * (bulletOneShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
+        sr.rect(10, SpaceInvaders.UNIT / 3f - SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * (bulletOneShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
         // bullet two
         if(powerup == Powerup.DOUBLESHOT)
             sr.rect(10, SpaceInvaders.UNIT-SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * ( bulletTwoShootTime / shootPeriod), SpaceInvaders.UNIT / 3f);
 
     }
 
-    public void drawScoreAndLivesTextAndPowerup(SpriteBatch sb){
+    public void drawScoreAndLivesTextAndPowerup(SpriteBatch sb, float transparency){
         float scale = 0.6f;
         float x = (WIDTH * scale + SpaceInvaders.UNIT) * lives + SpaceInvaders.UNIT/2f;
         float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2) + SpaceInvaders.yOff;
+        font.setColor(1,1,1,transparency);
         if(lives > 0) {
             //livesText
             font.draw(sb, "x " + lives, x, y, 20, 0, false);
@@ -152,12 +187,36 @@ public class Player {
         font.draw(sb, layout, x, y);
         // powerup
         if(powerup != Powerup.NONE){
+            layout.setText(font, String.format("%s : %.0f", getPowerupString(powerup), powerupTimeLeft));
+            font.draw(sb, layout, SpaceInvaders.WIDTH - layout.width / 4 * 5, y);
+        }
+    }
+
+    // TODO get this working
+    public void drawPowerupCover(ShapeRenderer sr){
+        // this must be called before drawScoreAndLivesTextAndPowerup()
+        float scale = 0.6f;
+        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2) + SpaceInvaders.yOff;
+        if(powerup != Powerup.NONE){
             layout.setText( font, String.format("%s : %.0f", getPowerupString(powerup), powerupTimeLeft) );
-            font.draw(sb, layout, SpaceInvaders.WIDTH-layout.width/4*5, y);
+            sr.setColor(currentScreen.BG_COLOR);
+            sr.rect(SpaceInvaders.WIDTH - layout.width / 4 * 5, y-layout.height, layout.width, layout.height);
         }
     }
 
     public void update(float delta) {
+        if(isRespawning()){
+            respawnTimer += delta;
+            if(respawnTimer > respawnTime) {
+                state = State.NORMAL;
+                currentScreen.onPlayerRespawnEnd();
+            }
+            else
+                return;
+        }
+
+        move(delta);
+
         // handle powerups
         if (powerup != Powerup.NONE) {
             // decrease powerup time if in normal state
@@ -185,9 +244,6 @@ public class Player {
                 bulletOneShootTime = shootPeriod;
         }
 
-
-        move(delta);
-
         for(int i = 0; i < numBullets; ++i){
             bullets[i].update(delta);
         }
@@ -201,6 +257,9 @@ public class Player {
     }
 
     public void move(float delta){
+        if( isRespawning() || isDead() )
+            return;
+
         xAccelerometerVel = Gdx.input.getAccelerometerY();
         xAccelerometerVel /= 5f;
         if(xAccelerometerVel > 1)
@@ -242,6 +301,9 @@ public class Player {
     }
 
     public void shoot(){
+        if( isRespawning() || isDead() )
+            return;
+
         if( ( (numBullets == 1  &&  powerup == Powerup.DOUBLESHOT)  ||  numBullets == 0 )
                 &&  state != State.ENTERING ){
             if(powerup == Powerup.DOUBLESHOT && bulletTwoShootTime >= shootPeriod){
@@ -293,11 +355,29 @@ public class Player {
         ParticleEffect answer = ParticleEffectPool.getLarge();
         answer.reset(0, (int)loc.x+ WIDTH /2, (int)loc.y+ HEIGHT /2, 10, 10, color);
 
-//        if(lives > 0){
-//            state = State.RESPAWNING;
-//        }
+        if(lives > 0){
+            respawn();
+        }
+        else{
+            state = State.DEAD;
+        }
 
         return answer;
+    }
+
+    public void center(){
+        loc.x = SpaceInvaders.WIDTH/2 - getWidth()/2;
+    }
+
+    public void respawn(){
+        currentScreen.onPlayerRespawnStart();
+        state = State.RESPAWNING;
+        respawnTimer = 0;
+        clearBullets();
+        powerup = Powerup.NONE;
+        xVel = 0;
+        // center player
+        center();
     }
 
     // TODO: stop these news
@@ -390,6 +470,10 @@ public class Player {
     public void clearBullets(){
         numBullets = 0;
         specialBullet.die();
+    }
+
+    public boolean isRespawning(){
+        return state == State.RESPAWNING;
     }
 
 }

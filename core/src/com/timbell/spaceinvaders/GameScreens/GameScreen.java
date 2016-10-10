@@ -1,6 +1,7 @@
 package com.timbell.spaceinvaders.GameScreens;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
 /**
@@ -14,6 +15,7 @@ import com.timbell.spaceinvaders.SpaceInvaders;
 public abstract class GameScreen implements Screen {
 
     protected SpaceInvaders game;
+    public static final Color BG_COLOR = Color.BLACK;
 
     public void keyDown(int keyCode){
 
@@ -26,6 +28,9 @@ public abstract class GameScreen implements Screen {
 
     public abstract void changeScreen(int screen);
     public abstract void init();
+
+    public void onPlayerRespawnStart(){}
+    public void onPlayerRespawnEnd(){}
 
 
     @Override

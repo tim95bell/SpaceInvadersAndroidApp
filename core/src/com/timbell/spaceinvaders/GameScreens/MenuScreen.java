@@ -4,6 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.Collision.Collision;
@@ -37,6 +40,10 @@ public class MenuScreen extends GameScreen {
 
     private State state;
 
+    private BitmapFont highScoreFont;
+    private GlyphLayout highScoreLayout;
+    private String highScoreText;
+
     public enum State{
         ENTERING, NORMAL, TRANSITION_PLAY
     }
@@ -54,6 +61,12 @@ public class MenuScreen extends GameScreen {
         playButton = new Button(SpaceInvaders.WIDTH/2f - 150f/2f, SpaceInvaders.HEIGHT/2f - 150f/2f + SpaceInvaders.UNIT*2, 150, new Color(0.576f, 0.769f, 0.49f, 1f), Color.BLACK, Button.ButtonSymbol.PLAY);
 
         collision.addMenuScreenObjects(this, playButton);
+
+        this.highScoreFont = new BitmapFont();
+        // smooth font
+        highScoreFont.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        highScoreFont.getData().setScale(4);
+        this.highScoreLayout = new GlyphLayout();
     }
 
     public void init(){
@@ -63,6 +76,9 @@ public class MenuScreen extends GameScreen {
 
         backgroundColor.set(BG_COLOR);
         ParticleEffectPool.freeAll(particleEffects);
+        p1.setCurrentScreen(this);
+
+        this.highScoreText = "High Score: "+game.getHighScore();
     }
 
     @Override
@@ -92,7 +108,6 @@ public class MenuScreen extends GameScreen {
             transitionTime += delta;
             SpaceInvaders.mix(BG_COLOR, PlayScreen.BG_COLOR, transitionTime/transitionPeriod, backgroundColor);
             if(transitionTime > transitionPeriod) {
-                state = State.NORMAL;
                 game.changeScreen(SpaceInvaders.PLAY_STATE);
             }
         }
@@ -102,57 +117,48 @@ public class MenuScreen extends GameScreen {
     }
 
     public void draw(float delta){
-        float buttonTransparancy = 1f;
+        float fadeTransparancy = 1f;
         if(state == State.ENTERING)
-            buttonTransparancy = transitionTime/transitionPeriod;
-
-//        game.bgport.apply();
-//        // Draw Background
-//        game.bgBatch.begin();
-//            game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
-//        game.bgBatch.end();
-
-//        game.gameport.apply(); // to show the actual screen being used, for other screen ratios
-        // darken background with a 30% transparent black square
+            fadeTransparancy = transitionTime/transitionPeriod;
+        else if(state == State.TRANSITION_PLAY){
+            fadeTransparancy = 1f - transitionTime/transitionPeriod;
+        }
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
-        game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        game.sr.setColor(backgroundColor);
-//            game.sr.rect(0, 0, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
-            game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
-        game.sr.end();
+            game.sr.begin(ShapeRenderer.ShapeType.Filled);
+                game.sr.setColor(backgroundColor);
+                game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
+            game.sr.end();
 
-
-        game.sr.begin(ShapeRenderer.ShapeType.Filled);
-            // draw and free particle effects
-            for(int i = 0; i < particleEffects.size; ++i) {
-                if(particleEffects.get(i).isDead()) {
-                    ParticleEffectPool.free(particleEffects.get(i));
-                    particleEffects.removeIndex(i);
+            game.sr.begin(ShapeRenderer.ShapeType.Filled);
+                // draw and free particle effects
+                for(int i = 0; i < particleEffects.size; ++i) {
+                    if(particleEffects.get(i).isDead()) {
+                        ParticleEffectPool.free(particleEffects.get(i));
+                        particleEffects.removeIndex(i);
+                    }
+                    else {
+                        particleEffects.get(i).update(delta);
+                        particleEffects.get(i).bounds();
+                        particleEffects.get(i).draw(game.sr);
+                    }
                 }
-                else {
-                    particleEffects.get(i).update(delta);
-                    particleEffects.get(i).bounds();
-                    particleEffects.get(i).draw(game.sr);
-                }
-            }
-            // draw play button
-            playButton.drawShape(game.sr, buttonTransparancy);
-        game.sr.end();
+                // player
+                p1.drawBullets(game.sr);
+                p1.draw(game.sr);
+                // draw play button
+        playButton.drawShape(game.sr, fadeTransparancy);
+            game.sr.end();
 
-        game.sb.begin();
-            // draw play button symbol
-            playButton.drawSymbol(game.sb, buttonTransparancy);
-        game.sb.end();
-
+            game.sb.begin();
+                // draw play button symbol
+        playButton.drawSymbol(game.sb, fadeTransparancy);
+                // high score text
+                highScoreFont.setColor(1,  1, 1, fadeTransparancy);
+                highScoreLayout.setText(highScoreFont, highScoreText);
+                highScoreFont.draw(game.sb, highScoreLayout, SpaceInvaders.WIDTH / 2 - highScoreLayout.width / 2, SpaceInvaders.HEIGHT - highScoreLayout.height / 2);
+            game.sb.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
-
-        game.sr.begin(ShapeRenderer.ShapeType.Filled);
-            // draw player and their bullets
-            p1.drawBullets(game.sr);
-            p1.draw(game.sr);
-        game.sr.end();
-
     }
 
     @Override

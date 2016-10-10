@@ -12,10 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Scaling;
-import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.badlogic.gdx.utils.viewport.ScalingViewport;
 import com.timbell.spaceinvaders.Collision.Collision;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Enemy;
@@ -64,27 +61,22 @@ public class SpaceInvaders extends Game {
 	public static Texture BACKGROUND;
 	public static Texture SPRITE_SHEET;
 
-	public static float volume = 1.0f;
+	public static float volume = 0.1f;//1.0f; // TODO: change volume back to 1.0
 
 	// CLASS
 	private int SIDE_BAR_WIDTH;
 
 	public SpriteBatch sb;
 	public ShapeRenderer sr;
-//	public SpriteBatch bgBatch;
-//	public ShapeRenderer bgSr;
 
 	private int currentState;
 	private GameScreen[] screens;
 
 	private OrthographicCamera cam;
-//	private OrthographicCamera bgCam;
 
 	private InputHandler inputHandler;
 
 	public FitViewport gameport;
-//	public ScalingViewport gameport;
-//	public FillViewport bgport;
 
 	private Preferences prefs;
 
@@ -151,6 +143,10 @@ public class SpaceInvaders extends Game {
 		ParticleEffectPool.init();
 
 		Gdx.gl.glClearColor(0, 0, 0, 1);
+		// so blending works in first frame
+		Gdx.gl20.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+		gameport.apply();
 	}
 
 	public void initAssets(){
@@ -260,23 +256,6 @@ public class SpaceInvaders extends Game {
 		inputHandler.setScreen(screens[currentState]);
 		screens[currentState].init();
 		setScreen(screens[currentState]);
-	}
-
-	public void calculateSideBarWidth(int width, int height){
-		if(((double)width)/((double)height) > 16.0/9.0){
-			double unit = ((double)height)/9.0;
-			double actualWidth = 16*unit;
-			double extraWidth = ((double)width) - actualWidth;
-			SIDE_BAR_WIDTH = (int)(extraWidth/2);
-			System.out.println("w/h: " + ((double)width)/((double)height) + "   |   16/9: " + 16.0/9.0);
-			System.out.println("new screen: " + actualWidth/(double)height + "16/9: " + 16.0/9.0);
-			System.out.println("WIDTH: " + width + "   |   actualwidth + extrawidth: " + (actualWidth + extraWidth));
-			System.out.println("actualWidth: " + actualWidth + "  extraWidth: " + extraWidth);
-		}
-		else{
-			SIDE_BAR_WIDTH = 0;
-		}
-
 	}
 
 	public static void mix(Color from, Color too, float percent, Color outColor){

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -25,6 +26,7 @@ public class PlayScreen extends GameScreen {
     public static final Color BG_COLOR = new Color(0f, 0f, 0f, 1f);
     // TODO: fully implement BG_COLOR and mix
     public static final int LOSE_HEIGHT = Player.Y + Player.HEIGHT;
+    private static final int START_ENTER_POS = -SpaceInvaders.WIDTH*2;
 
     // game objects
     private Player p1;
@@ -44,7 +46,7 @@ public class PlayScreen extends GameScreen {
     private MotherShip motherShip;
 
     private enum State{
-        ENTERING, GAME, TRANSITION_GAMEOVER
+        ENTERING, GAME, TRANSITION_GAMEOVER, PLAYER_SPAWNING
     }
 
     private Array<Level> levels;
@@ -69,6 +71,8 @@ public class PlayScreen extends GameScreen {
         collision.addPlayScreenObjects(this, swarm, motherShip);
 
         this.font = new BitmapFont();
+        // smooth font
+        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         font.getData().setScale(5);
         this.layout = new GlyphLayout();
     }
@@ -79,6 +83,7 @@ public class PlayScreen extends GameScreen {
 
         loadNextLevel();
         p1.reset();
+        p1.setCurrentScreen(this);
     }
 
     public void loadNextLevel(){
@@ -90,7 +95,7 @@ public class PlayScreen extends GameScreen {
             swarm.reset();
             p1.setState(Player.State.ENTERING);
             p1.killSpecialBullet();
-            this.enterPos = -SpaceInvaders.WIDTH*2;
+            this.enterPos = START_ENTER_POS;
             this.transitionTime = 0;
             ParticleEffectPool.freeAll(particleEffects);
 
@@ -118,10 +123,11 @@ public class PlayScreen extends GameScreen {
                     motherShip.reset();
             }
             // update mothership
-            if(motherShip.getState() == MotherShip.State.ALIVE || motherShip.getState() == MotherShip.State.DYING)
+            if( (motherShip.getState() == MotherShip.State.ALIVE || motherShip.getState() == MotherShip.State.DYING) )
                 motherShip.update(delta);
 
             boolean gameOver = swarm.update(delta);
+            swarm.updateBullets(delta);
 
             gameOver = gameOver || p1.isDead();
 
@@ -167,62 +173,61 @@ public class PlayScreen extends GameScreen {
     }
 
     public void draw(){
-        // draw background
-//        game.bgport.apply();
-//        game.bgBatch.begin();
-//            game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
-//        game.bgBatch.end();
-
-        game.gameport.apply();
-        // TODO: replase this with jusp changing the texture to be darker
-        if( !backgroundColor.equals(BG_COLOR) ) {
-            Gdx.gl.glEnable(GL20.GL_BLEND);
-            game.sr.begin(ShapeRenderer.ShapeType.Filled);
-            game.sr.setColor(backgroundColor);
-//            game.sr.rect(0, 0, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
-            game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
-            game.sr.end();
-            Gdx.gl.glDisable(GL20.GL_BLEND);
+        float fadeTransparancy = 1f;
+        if(state == State.ENTERING)
+            fadeTransparancy = (START_ENTER_POS-enterPos)/START_ENTER_POS;
+        else if(state == State.TRANSITION_GAMEOVER){
+            fadeTransparancy = 1f - transitionTime/transitionPeriod;
         }
 
-        // Shape Drawing
+
         Gdx.gl.glEnable(GL20.GL_BLEND);
-        game.sr.begin(ShapeRenderer.ShapeType.Filled);
-            // particles
-            for(int i = particleEffects.size-1; i >= 0; --i)
-                particleEffects.get(i).draw(game.sr);
-            // player bullets
-            p1.drawBullets(game.sr);
-            // swarm bullets
-            swarm.drawBullets(game.sr);
-            // player
-            p1.draw(game.sr);
-            p1.drawLives(game.sr);
-            // side bars
-            game.sr.setColor(1f,1f,1f,1f);
-            game.sr.rect(-5, 0 - SpaceInvaders.yOff, 5, SpaceInvaders.viewportHeight);
-            game.sr.rect(SpaceInvaders.WIDTH, 0-SpaceInvaders.yOff, 5, SpaceInvaders.viewportHeight);
-        game.sr.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+            if( !backgroundColor.equals(BG_COLOR) ) {
+                game.sr.begin(ShapeRenderer.ShapeType.Filled);
+                game.sr.setColor(backgroundColor);
+                game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
+                game.sr.end();
+            }
 
-
-        // Sprite Drawing
+            // Sprite Drawing
         game.sb.begin();
             // swarm
-            if(!(state == State.ENTERING))
+            if (!(state == State.ENTERING)){
                 swarm.draw(game.sb);
+            }
             else {
                 swarm.draw(game.sb, enterPos, 0);
-                font.draw(game.sb, layout, enterPos+SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT/2f + layout.height/2);
+                font.draw(game.sb, layout, enterPos + SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT/2f + layout.height/2);
             }
-            if(motherShip.getState() == MotherShip.State.ALIVE || motherShip.getState() == MotherShip.State.DYING)
+
+            if( !(motherShip.getState() == MotherShip.State.DEAD) )
                 motherShip.draw(game.sb);
-            p1.drawScoreAndLivesTextAndPowerup(game.sb);
+            p1.drawScoreAndLivesTextAndPowerup(game.sb, fadeTransparancy);
         game.sb.end();
 
-
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+            // Shape Drawing
+            game.sr.begin(ShapeRenderer.ShapeType.Filled);
+                // particles
+                for(int i = particleEffects.size-1; i >= 0; --i)
+                    particleEffects.get(i).draw(game.sr);
+                // swarm bullets
+                swarm.drawBullets(game.sr);
+                // player
+                p1.drawBullets(game.sr);
+                p1.draw(game.sr);
+                p1.drawLives(game.sr, fadeTransparancy);
+//                p1.drawPowerupCover(game.sr);
+                // side bars
+//                game.sr.setColor(1f, 1f, 1f, 1f);
+//                game.sr.rect(-5, 0 - SpaceInvaders.yOff, 5, SpaceInvaders.viewportHeight);
+//                game.sr.rect(SpaceInvaders.WIDTH, 0 - SpaceInvaders.yOff, 5, SpaceInvaders.viewportHeight);
+                game.sr.setColor(1f,1f,1f,0.25f);
+                game.sr.rect(0-SpaceInvaders.xOff, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
+                game.sr.rect(SpaceInvaders.WIDTH, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
+            game.sr.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
-
 
     public void changeScreen(int screen){
         if(screen == SpaceInvaders.GAMEOVER_STATE){
@@ -232,6 +237,16 @@ public class PlayScreen extends GameScreen {
             p1.clearBullets();
             swarm.clearBullets();
         }
+    }
+
+    public void onPlayerRespawnStart(){
+        motherShip.pause();
+        swarm.pause();
+    }
+
+    public void onPlayerRespawnEnd(){
+        motherShip.resume();
+        swarm.resume();
     }
 
     //-----------------SCREEN-----------------//

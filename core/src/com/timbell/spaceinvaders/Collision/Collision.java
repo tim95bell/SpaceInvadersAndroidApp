@@ -14,7 +14,10 @@ import com.timbell.spaceinvaders.Entities.MotherShip;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.Entities.SpecialBullet;
 import com.timbell.spaceinvaders.Entities.Swarm;
+import com.timbell.spaceinvaders.GameScreens.GameOverScreen;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
+import com.timbell.spaceinvaders.GameScreens.PlayScreen;
+import com.timbell.spaceinvaders.GameScreens.MenuScreen;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.SpaceInvaders;
@@ -36,15 +39,15 @@ public class Collision {
     private Array<ParticleEffect> newParticleEffects;
 
     // objects used by MenuScreen only
-    private GameScreen menuScreen;
+    private MenuScreen menuScreen;
     private Array<Button> menuScreenButtons;
 
     // objects used by GameOverScreen only
-    private GameScreen gameOverScreen;
+    private GameOverScreen gameOverScreen;
     private Array<Button> gameOverScreenButtons;
 
     // objects used by PlayScreen only
-    private GameScreen playScreen;
+    private PlayScreen playScreen;
     private Swarm swarm;
     private Enemy[] enemies;
     private Bullet[] enemyBullets;
@@ -60,7 +63,7 @@ public class Collision {
         this.newParticleEffects = new Array<ParticleEffect>(false, 2);
     }
 
-    public void addPlayScreenObjects(GameScreen screen, Swarm swarm, MotherShip motherShip){
+    public void addPlayScreenObjects(PlayScreen screen, Swarm swarm, MotherShip motherShip){
         this.playScreen = screen;
         this.swarm = swarm;
         this.enemies = swarm.members;
@@ -68,13 +71,13 @@ public class Collision {
         this.motherShip = motherShip;
     }
 
-    public void addMenuScreenObjects(GameScreen screen, Button playButton){ //}, Button settingsButton){
+    public void addMenuScreenObjects(MenuScreen screen, Button playButton){ //}, Button settingsButton){
         this.menuScreen = screen;
         this.menuScreenButtons = new Array<Button>(false, 1);
         menuScreenButtons.add(playButton);
     }
 
-    public void addGameOverScreenObjects(GameScreen screen, Button resetButton, Button homeButton){ //}, Button settingsButton){
+    public void addGameOverScreenObjects(GameOverScreen screen, Button resetButton, Button homeButton){ //}, Button settingsButton){
         this.gameOverScreen = screen;
         this.gameOverScreenButtons = new Array<Button>(false, 2);
         gameOverScreenButtons.add(resetButton);
@@ -154,10 +157,12 @@ public class Collision {
                 }
 
                 //player
-                p1.getRects(recievePlayerRectangles);
-                for(int j = 0; j < recievePlayerRectangles.length; ++j) {
-                    if (recievePlayerRectangles[j].contains(pX, pY)) {
-                        particles[p].bounce(recievePlayerRectangles[j].getX(), recievePlayerRectangles[j].getY(), (int)recievePlayerRectangles[j].getWidth(), (int)recievePlayerRectangles[j].getHeight());
+                if( !(p1.isDead() || p1.isRespawning())) {
+                    p1.getRects(recievePlayerRectangles);
+                    for (int j = 0; j < recievePlayerRectangles.length; ++j) {
+                        if (recievePlayerRectangles[j].contains(pX, pY)) {
+                            particles[p].bounce(recievePlayerRectangles[j].getX(), recievePlayerRectangles[j].getY(), (int) recievePlayerRectangles[j].getWidth(), (int) recievePlayerRectangles[j].getHeight());
+                        }
                     }
                 }
 
@@ -170,14 +175,14 @@ public class Collision {
 
         }
 
-        // p1 Special bullet,  and edges, and enemies
+        // p1 Special bullet,  and edges, and enemies, and mothership, and enemy bullets
         SpecialBullet p1SpecialBullet = p1.getSpecialBullet();
         if( !p1SpecialBullet.isDead() ){
             // edges
             if( p1SpecialBullet.getX() < 0 ||
                     p1SpecialBullet.getX()+p1SpecialBullet.getWidth() > SpaceInvaders.WIDTH ||
                     p1SpecialBullet.getY()+p1SpecialBullet.getHeight() > SpaceInvaders.HEIGHT + SpaceInvaders.yOff) {
-                newParticleEffects.add(p1SpecialBullet.hitEdge());
+                newParticleEffects.add(p1SpecialBullet.hit());
                 p1SpecialBullet.die();
                 gong.play(SpaceInvaders.volume);
             }
@@ -193,6 +198,22 @@ public class Collision {
                         if (enemyParticlleEffect != null)
                             newParticleEffects.add(enemyParticlleEffect);
                     }
+                }
+            }
+            // mothership
+            if(motherShip.isAlive()) {
+                if (motherShip.getRect().overlaps(p1SpecialBullet.getRect())) {
+                    newParticleEffects.add(p1SpecialBullet.hit());
+                    String powerup = p1.generatePowerup();
+                    newParticleEffects.add(motherShip.hit(powerup));
+                }
+            }
+            // enemy bullets
+            for(int j = numEnemyBullets-1; j >= 0; --j){
+                if(enemyBullets[j].getRect().overlaps(p1SpecialBullet.getRect())){
+                    newParticleEffects.add( enemyBullets[j].hit() );
+                    swarm.removeBullet(j);
+                    newParticleEffects.add(p1SpecialBullet.hitBullet());
                 }
             }
         }

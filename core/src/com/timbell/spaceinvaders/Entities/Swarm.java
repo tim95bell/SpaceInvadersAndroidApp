@@ -13,6 +13,10 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  */
 public class Swarm {
 
+    public enum State{
+        NORMAL, PAUSED
+    }
+
     public static final int ROWS = 5;
     public static final int COLS = 10;
 
@@ -22,6 +26,8 @@ public class Swarm {
     private int direction = 1;
 
     public static final int START_HEIGHT = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*4;
+
+    private State state;
 
     private int numTimesMovedDown;
 
@@ -42,7 +48,6 @@ public class Swarm {
 
 
     public Swarm(){
-
         members = new Enemy[ROWS*COLS];
         bullets = new Bullet[20];
         for(int i = bullets.length-1; i >= 0; --i)
@@ -51,6 +56,7 @@ public class Swarm {
         int swarmWidth = (COLS*3*SpaceInvaders.UNIT) + (COLS-1)*SpaceInvaders.UNIT;
         sideWidth = (SpaceInvaders.WIDTH-swarmWidth)/2.0;
         this.moveSound = Gdx.audio.newSound(Gdx.files.internal("fastinvader116bit.wav"));
+        reset();
     }
 
     // TODO: complete reset
@@ -58,9 +64,14 @@ public class Swarm {
         entering = true;
         numBullets = 0;
         numTimesMovedDown = 0;
+        this.state = State.NORMAL;
     }
 
     public boolean update(float delta){
+        if(state == State.PAUSED)
+            return false;
+
+
         boolean gameOver = false;
 
         timeSinceMove += delta;
@@ -90,11 +101,13 @@ public class Swarm {
             timeSinceMove -= movePeriod;
         }
 
+        return gameOver;
+    }
+
+    public void updateBullets(float delta){
         for(int i = 0; i < numBullets; ++i){
             bullets[i].update(delta);
         }
-
-        return gameOver;
     }
 
     public void draw(SpriteBatch batch){
@@ -224,6 +237,14 @@ public class Swarm {
                 --index;
             }
         }
+    }
+
+    public void pause(){
+        state = State.PAUSED;
+    }
+
+    public void resume(){
+        state = State.NORMAL;
     }
 
     public void setEntering(boolean entering){

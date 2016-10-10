@@ -56,8 +56,7 @@ public class SpecialBullet extends Bullet {
         return answer;
     }
 
-    public ParticleEffect hitEdge(){
-        die();
+    public ParticleEffect hitBullet(){
         float tempYSpeed = ySpeed > 0 ? 0 : -ySpeed*0.3f;
         ParticleEffect answer = ParticleEffectPool.getSmall();
         answer.reset(xSpeed, tempYSpeed, x + width / 2, y + height / 2, 3, 3, color);

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -69,6 +70,8 @@ public class GameOverScreen extends GameScreen {
         collision.addGameOverScreenObjects(this, retryButton, mainMenuButton);
 
         this.font = new BitmapFont();
+        // smooth font
+        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         this.fontLayout = new GlyphLayout();
     }
 
@@ -95,6 +98,10 @@ public class GameOverScreen extends GameScreen {
         transitionTime = 0;
         state = State.ENTERING;
         ParticleEffectPool.freeAll(particleEffects);
+
+        p1.reset();
+        p1.setCurrentScreen(this);
+        p1.respawn();
     }
 
     public void update(float delta){
@@ -125,88 +132,66 @@ public class GameOverScreen extends GameScreen {
     }
 
     public void draw(float delta){
-        float buttonTransparancy = 1f;
+        float fadeTransparancy = 1f;
         if(state == State.ENTERING)
-            buttonTransparancy = transitionTime/transitionPeriod;
+            fadeTransparancy = transitionTime/transitionPeriod;
         else if(state == State.TRANSITION_PLAY || state == State.TRANSITION_MENU)
-            buttonTransparancy = 1f-(transitionTime/transitionPeriod);
-
-        // draw background
-//        game.bgport.apply();
-//        game.bgBatch.begin();
-//        game.bgBatch.draw(SpaceInvaders.BACKGROUND, 0, 0, SpaceInvaders.WIDTH, SpaceInvaders.HEIGHT);
-//        game.bgBatch.end();
-
-        // transparancy over background
-//        game.gameport.apply();
-        // TODO: replase this with jusp changing the texture to be darker
+            fadeTransparancy = 1f-(transitionTime/transitionPeriod);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
-        game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        game.sr.setColor(backgroundColor);
-//        game.sr.rect(0, 0, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
-        game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
-        retryButton.drawShape(game.sr, buttonTransparancy);
-        mainMenuButton.drawShape(game.sr, buttonTransparancy);
-        game.sr.end();
+            game.sr.begin(ShapeRenderer.ShapeType.Filled);
+                game.sr.setColor(backgroundColor);
+                game.sr.rect(-SpaceInvaders.xOff, -SpaceInvaders.yOff, SpaceInvaders.viewportWidth, SpaceInvaders.viewportHeight);
+                retryButton.drawShape(game.sr, fadeTransparancy);
+                mainMenuButton.drawShape(game.sr, fadeTransparancy);
+            game.sr.end();
+
+            game.sr.begin(ShapeRenderer.ShapeType.Filled);
+                // particles
+                for(int i = 0; i < particleEffects.size; ++i) {
+                    if(particleEffects.get(i).isDead()) {
+                        ParticleEffectPool.free(particleEffects.get(i));
+                        particleEffects.removeIndex(i);
+                    }
+                    else {
+                        particleEffects.get(i).update(delta);
+                        particleEffects.get(i).bounds();
+                        particleEffects.get(i).draw(game.sr);
+                    }
+                }
+                // player
+                p1.drawBullets(game.sr);
+                p1.draw(game.sr);
+            game.sr.end();
+
+            game.sb.begin();
+                retryButton.drawSymbol(game.sb, fadeTransparancy);
+                mainMenuButton.drawSymbol(game.sb, fadeTransparancy);
+                // draw text
+                font.setColor(1,1,1,fadeTransparancy);
+                // Game Over / You Won
+                font.getData().setScale(4f);
+                fontLayout.setText(font, mainText);
+                float mainTextHeight = fontLayout.height;
+                float mainTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
+                float mainTextY = SpaceInvaders.HEIGHT - mainTextHeight / 2;
+                font.draw(game.sb, fontLayout, mainTextX, mainTextY);
+                // your score
+                font.getData().setScale(2f);
+                fontLayout.setText(font, thisScoreText);
+                float thisScoreTextHeight = fontLayout.height;
+                float thisScoreTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
+                float thisScoreTextY = mainTextY - mainTextHeight*2;
+                font.draw(game.sb, fontLayout, thisScoreTextX, thisScoreTextY);
+                // old high score
+                font.getData().setScale(1.5f);
+                fontLayout.setText(font, oldHighScoreText);
+                float oldHighScoreTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
+                float oldHighScoreTextY = thisScoreTextY - thisScoreTextHeight*2;
+                font.draw( game.sb, fontLayout, oldHighScoreTextX, oldHighScoreTextY );
+            game.sb.end();
+
         Gdx.gl.glDisable(GL20.GL_BLEND);
-
-
-        game.sr.begin(ShapeRenderer.ShapeType.Filled);
-        // Shape Drawing
-        // particles
-        for(int i = 0; i < particleEffects.size; ++i) {
-            if(particleEffects.get(i).isDead()) {
-                ParticleEffectPool.free(particleEffects.get(i));
-                particleEffects.removeIndex(i);
-            }
-            else {
-                particleEffects.get(i).update(delta);
-                particleEffects.get(i).bounds();
-                particleEffects.get(i).draw(game.sr);
-            }
-        }
-        // player bullets
-        p1.drawBullets(game.sr);
-        // player
-        p1.draw(game.sr);
-        game.sr.end();
-
-
-//         Sprite Drawing
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        game.sb.begin();
-        retryButton.drawSymbol(game.sb, buttonTransparancy);
-        mainMenuButton.drawSymbol(game.sb, buttonTransparancy);
-        game.sb.end();
-        Gdx.gl.glDisable(GL20.GL_BLEND);
-
-        // draw text
-        game.sb.begin();
-            // Game Over / You Won
-            font.getData().setScale(4f);
-            fontLayout.setText(font, mainText);
-            float mainTextHeight = fontLayout.height;
-            float mainTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
-            float mainTextY = SpaceInvaders.HEIGHT - mainTextHeight / 2;
-            font.draw(game.sb, fontLayout, mainTextX, mainTextY);
-
-            // your score
-            font.getData().setScale(2f);
-            fontLayout.setText(font, thisScoreText);
-            float thisScoreTextHeight = fontLayout.height;
-            float thisScoreTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
-            float thisScoreTextY = mainTextY - mainTextHeight*2;
-            font.draw(game.sb, fontLayout, thisScoreTextX, thisScoreTextY);
-
-            // old high score
-            font.getData().setScale(1.5f);
-            fontLayout.setText(font, oldHighScoreText);
-            float oldHighScoreTextX = SpaceInvaders.WIDTH/2 - fontLayout.width/2;
-            float oldHighScoreTextY = thisScoreTextY - thisScoreTextHeight*2;
-            font.draw( game.sb, fontLayout, oldHighScoreTextX, oldHighScoreTextY );
-        game.sb.end();
-
     }
 
     public void changeScreen(int screen){
