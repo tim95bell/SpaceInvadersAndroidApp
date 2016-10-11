@@ -25,6 +25,7 @@ import com.timbell.spaceinvaders.GameScreens.GameOverScreen;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.GameScreens.MenuScreen;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
+import com.timbell.spaceinvaders.GameScreens.TutorialScreen;
 import com.timbell.spaceinvaders.Input.InputHandler;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
@@ -128,11 +129,13 @@ public class SpaceInvaders extends Game {
 		Player p1 = new Player();
 		Array<ParticleEffect> particleEffects = new Array<ParticleEffect>(false, 2);
 		Collision collision = new Collision(p1, particleEffects);
-		screens = new GameScreen[3];
-		currentState = MENU_STATE;
+		screens = new GameScreen[4];
+//		currentState = MENU_STATE;
+		currentState = TUTORIAL_STATE;
 		screens[MENU_STATE] = new MenuScreen(this, p1, particleEffects);
 		screens[PLAY_STATE] = new PlayScreen(this, p1, particleEffects);
 		screens[GAMEOVER_STATE] = new GameOverScreen(this, p1, particleEffects);
+		screens[TUTORIAL_STATE] = new TutorialScreen(this, p1, particleEffects);
 		screens[currentState].init();
 		setScreen(screens[currentState]);
 
