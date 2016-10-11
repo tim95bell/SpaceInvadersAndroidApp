@@ -2,30 +2,19 @@ package com.timbell.spaceinvaders.Entities;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
-
 import com.badlogic.gdx.math.Rectangle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
-import com.timbell.spaceinvaders.SpaceInvaders;
 
-/**
- * Created by timbell on 1/09/16.
- */
 public class Bullet {
     protected int x, y, width, height;
     private Rectangle rect;
     protected float xSpeed, ySpeed;
-
     public Color color;
-
-    private Type type;
-
     public enum Type{
         RECT, ROUND
     }
+    private Type type;
 
     public Bullet(){
         this.rect = new Rectangle();
@@ -60,15 +49,11 @@ public class Bullet {
     }
 
     public ParticleEffect hit(){
-//        owningList.removeValue(this, true);
         float tempYSpeed = ySpeed > 0 ? 0 : -ySpeed*0.3f;
-//        float tempYSpeed = ySpeed > 0 ? 0 : -ySpeed*0.1f;
-//        float tempYSpeed = -ySpeed*0.01f;
         ParticleEffect answer = ParticleEffectPool.getSmall();
         answer.reset(xSpeed, tempYSpeed, x + width / 2, y + height / 2, 3, 3, color);
         return answer;
     }
-
 
     public int getX(){
         return x;
