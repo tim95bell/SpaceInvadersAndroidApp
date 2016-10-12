@@ -5,9 +5,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-/**
- * Created by timbell on 10/10/16.
- */
 public class AttractingParticleEffect {
     public static final int NUM_PARTICLES = 200;
 
@@ -51,7 +48,9 @@ public class AttractingParticleEffect {
             mul = 1f-mul;
             dir.nor();
             if( (dir.x > 0 && particles[i].getVelX() < 0)  ||  (dir.x < 0 && particles[i].getVelX() > 0) )
-                particles[i].slowXVel();
+                particles[i].slowXVel(0.8f);
+            if( (dir.y > 0 && particles[i].getVelY() < 0)  ||  (dir.y < 0 && particles[i].getVelY() > 0) )
+                particles[i].slowYVel(0.8f);
             particles[i].applyForce(dir.x * 0.05f * delta * 60f * mul, dir.y * 0.05f * delta * 60f * mul);
             particles[i].update(delta);
 
@@ -59,7 +58,7 @@ public class AttractingParticleEffect {
             if(dir.len() < 20)
                 aliveIndexes.removeValue(i, false);
 
-            particles[i].bounds();
+            particles[i].boundsStop();
         }
     }
 
@@ -67,14 +66,6 @@ public class AttractingParticleEffect {
         sr.setColor( color );
         for(int i = 0; i < aliveIndexes.size; ++i){
             particles[aliveIndexes.get(i)].draw(sr);
-        }
-//        sr.setColor(Color.GREEN);
-//        sr.circle(attractorX, attractorY, 20);
-    }
-
-    public void bounds(){
-        for(int i = 0; i < particles.length; ++i){
-            particles[i].bounds();
         }
     }
 

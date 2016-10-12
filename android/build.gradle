@@ -16,7 +16,7 @@ android {
     }
     defaultConfig {
         applicationId "com.timbell.spaceinvaders"
-        minSdkVersion 21
+        minSdkVersion 8///21
         targetSdkVersion 23
     }
     productFlavors {

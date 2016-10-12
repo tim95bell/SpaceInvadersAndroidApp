@@ -10,8 +10,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
-import com.timbell.spaceinvaders.Collision.Collision;
-import com.timbell.spaceinvaders.Entities.Bullet;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
@@ -20,25 +18,22 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
 
-
-/**
- * Created by timbell on 23/07/16.
- */
 public class MenuScreen extends GameScreen {
 
     public static final Color BG_COLOR = new Color(0.6f, 0.1f, 0.1f, 0.6f);
 
     private Button playButton;
+    private Button tutorialButton;
 
     private BitmapFont highScoreFont;
     private GlyphLayout highScoreLayout;
     private String highScoreText;
 
-
     public MenuScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects){
         super(game, p1, particleEffects);
 
-        playButton = new Button(SpaceInvaders.WIDTH/2f - 150f/2f, SpaceInvaders.HEIGHT/2f - 150f/2f + SpaceInvaders.UNIT*2, 150, new Color(0.576f, 0.769f, 0.49f, 1f), Color.BLACK, Button.ButtonSymbol.PLAY);
+        playButton = new Button(SpaceInvaders.WIDTH/2f - 100f/2f, SpaceInvaders.HEIGHT/5f*2.2f - 100f/2f + SpaceInvaders.UNIT*2, 100, new Color(0.576f, 0.769f, 0.49f, 1f), Color.BLACK, Button.ButtonSymbol.PLAY);
+        tutorialButton = new Button( (SpaceInvaders.WIDTH/2f - 100f/2f)/2f - 75f/2f, SpaceInvaders.HEIGHT/5f*2.2f - 75f/2f + SpaceInvaders.UNIT*2, 75, new Color(0.3f, 0.3f, 0.769f, 1f), Color.BLACK, Button.ButtonSymbol.TUTORIAL);
 
         this.highScoreFont = new BitmapFont();
         // smooth font
@@ -51,6 +46,7 @@ public class MenuScreen extends GameScreen {
         super.init(BG_COLOR);
 
         this.playButton.reset();
+        this.tutorialButton.reset();
         this.highScoreText = "High Score: "+game.getHighScore();
         p1.setState(Player.State.NORMAL);
     }
@@ -74,6 +70,13 @@ public class MenuScreen extends GameScreen {
                 game.changeScreen(SpaceInvaders.PLAY_STATE);
             }
         }
+        else if(state == STATE_TRANSITION_TUTORIALSCREEN){
+            transitionTime += delta;
+            SpaceInvaders.mix(BG_COLOR, TutorialScreen.BG_COLOR, transitionTime/transitionPeriod, backgroundColor);
+            if(transitionTime > transitionPeriod) {
+                game.changeScreen(SpaceInvaders.TUTORIAL_STATE);
+            }
+        }
 
         p1.update(delta);
         collision();
@@ -83,7 +86,7 @@ public class MenuScreen extends GameScreen {
         float fadeTransparancy = 1f;
         if(state == STATE_ENTERING)
             fadeTransparancy = transitionTime/transitionPeriod;
-        else if(state == STATE_TRANSITION_PLAYSCREEN){
+        else if(state == STATE_TRANSITION_PLAYSCREEN || state == STATE_TRANSITION_TUTORIALSCREEN){
             fadeTransparancy = 1f - transitionTime/transitionPeriod;
         }
 
@@ -110,16 +113,18 @@ public class MenuScreen extends GameScreen {
                 p1.drawBullets(game.sr);
                 p1.draw(game.sr);
                 // side bars
-                game.sr.setColor(1f,1f,1f,0.25f);
+                game.sr.setColor(1f, 1f, 1f, 0.25f);
                 game.sr.rect(0 - SpaceInvaders.xOff, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
                 game.sr.rect(SpaceInvaders.WIDTH, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
-                // draw play button
+                // draw buttons
                 playButton.drawShape(game.sr, fadeTransparancy);
+                tutorialButton.drawShape(game.sr, fadeTransparancy);
             game.sr.end();
 
             game.sb.begin();
-                // draw play button symbol
+                // draw button symbols
                 playButton.drawSymbol(game.sb, fadeTransparancy);
+                tutorialButton.drawSymbol(game.sb, fadeTransparancy);
                 // high score text
                 highScoreFont.setColor(1,  1, 1, fadeTransparancy);
                 highScoreLayout.setText(highScoreFont, highScoreText);
@@ -130,10 +135,9 @@ public class MenuScreen extends GameScreen {
 
     @Override
     public void dispose() {
-//        testButton = null;
-//        particleEffects = null;
-//        buttons = null;
-//        collision = null;
+        highScoreFont.dispose();
+        playButton.dispose();
+        tutorialButton.dispose();
     }
 
     public void collision(){
@@ -160,9 +164,11 @@ public class MenuScreen extends GameScreen {
                 particles[p].bounds();
 
                 // buttons
-                // looks awesome without visible
                 if (playButton.visible && playButton.getRect().contains(pX, pY)) {
                     particles[p].bounce(playButton.getX(), playButton.getY(), (int) playButton.getSize(), (int) playButton.getSize());
+                }
+                if (tutorialButton.visible && tutorialButton.getRect().contains(pX, pY)) {
+                    particles[p].bounce(tutorialButton.getX(), tutorialButton.getY(), (int) tutorialButton.getSize(), (int) tutorialButton.getSize());
                 }
 
                 //sheilds
@@ -175,15 +181,21 @@ public class MenuScreen extends GameScreen {
             Rectangle bulletRect = p1.bullets[i].getRect();
 
             if (playButton.visible && bulletRect.overlaps(playButton.getRect())) {
+                transitionTime = 0;
                 particleEffects.addAll(playButton.hit(), 0, 2);
                 particleEffects.add(p1.bullets[i].hit());
                 p1.removeBullet(i);
                 changeScreen(SpaceInvaders.PLAY_STATE);
             }
+            if (tutorialButton.visible && bulletRect.overlaps(tutorialButton.getRect())) {
+                transitionTime = 0;
+                particleEffects.addAll(tutorialButton.hit(), 0, 2);
+                particleEffects.add(p1.bullets[i].hit());
+                p1.removeBullet(i);
+                changeScreen(SpaceInvaders.TUTORIAL_STATE);
+            }
         }
     } // end collision()
-
-
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     @Override

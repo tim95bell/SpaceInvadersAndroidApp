@@ -4,9 +4,6 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.InputProcessor;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 
-/**
- * Created by timbell on 21/07/16.
- */
 public class InputHandler implements InputProcessor {
 
     private GameScreen screen;

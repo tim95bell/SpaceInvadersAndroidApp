@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
-import com.timbell.spaceinvaders.Collision.Collision;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
@@ -19,9 +18,6 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-/**
- * Created by timbell on 10/10/16.
- */
 public class TutorialScreen extends GameScreen {
     public static final Color BG_COLOR = new Color(0.1f, 0.1f, 0.5f, 0.5f);
 
@@ -61,7 +57,7 @@ public class TutorialScreen extends GameScreen {
     public TutorialScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects) {
         super(game, p1, particleEffects);
 
-        okButton = new Button(SpaceInvaders.WIDTH / 2f - 150f / 2f, SpaceInvaders.HEIGHT/4f, 60, new Color(0.576f, 0.769f, 0.49f, 1f), Color.BLACK, Button.ButtonSymbol.PLAY);
+        okButton = new Button(SpaceInvaders.WIDTH / 2f - 150f / 2f, SpaceInvaders.HEIGHT/4f, 60, new Color(0.576f, 0.769f, 0.49f, 1f), Color.BLACK, Button.ButtonSymbol.OKAY);
         beam = new Rectangle();
         target = new Rectangle();
 
@@ -83,7 +79,7 @@ public class TutorialScreen extends GameScreen {
         if(MathUtils.random() < 0.5){
             x = SpaceInvaders.WIDTH - beamWidth - MathUtils.random()*(SpaceInvaders.WIDTH / 2 - beamWidth*2);
         }
-        beam.set( x, 0, beamWidth, SpaceInvaders.HEIGHT);
+        beam.set(x, 0, beamWidth, SpaceInvaders.HEIGHT);
         timeInBeam = targetTimeInBeam;
         inBeam = false;
         // SHOOT
@@ -223,7 +219,13 @@ public class TutorialScreen extends GameScreen {
 
             font.getData().setScale(h2Size);
             layout.setText(font, "Move into the beam to continue...");
-            font.draw( game.sb, layout, SpaceInvaders.WIDTH/2-layout.width/2, h2Y);
+            font.draw(game.sb, layout, SpaceInvaders.WIDTH / 2 - layout.width / 2, h2Y);
+
+            if(inBeam) {
+                font.getData().setScale(3f);
+                layout.setText(font, String.format("%.0f", (timeInBeam)));
+                font.draw(game.sb, layout, beam.getX() + beam.getWidth() / 2 - layout.width / 2, SpaceInvaders.HEIGHT / 4);
+            }
         }
         else if(stage == TUTORIAL_SHOOT) {
             font.setColor(0f, 0f, 0f, fadeTransparancy);
@@ -338,6 +340,10 @@ public class TutorialScreen extends GameScreen {
         }
     }
 
-
+    @Override
+    public void dispose(){
+        okButton.dispose();
+        font.dispose();
+    }
 
 }

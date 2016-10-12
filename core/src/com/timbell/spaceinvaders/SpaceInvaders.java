@@ -1,6 +1,5 @@
 package com.timbell.spaceinvaders;
 
-
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
@@ -13,7 +12,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.timbell.spaceinvaders.Collision.Collision;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Enemy;
 import com.timbell.spaceinvaders.Entities.EnemyOne;
@@ -21,6 +19,7 @@ import com.timbell.spaceinvaders.Entities.EnemyThree;
 import com.timbell.spaceinvaders.Entities.EnemyTwo;
 import com.timbell.spaceinvaders.Entities.MotherShip;
 import com.timbell.spaceinvaders.Entities.Player;
+import com.timbell.spaceinvaders.Entities.Swarm;
 import com.timbell.spaceinvaders.GameScreens.GameOverScreen;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.GameScreens.MenuScreen;
@@ -31,17 +30,6 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 
 public class SpaceInvaders extends Game {
-
-	// TODO: get rid of bgBatch, and bgSr. only one sb and sr is needed. it is the viewports that are needed.
-
-	// TODO: thinking of making the darkened screen take up all the screen, and show the edges of the actual game with a white bar on each side
-	// (to show the edge of where you can go. and then have everything happen withing the actual game part of the screen, that is theright aspect ratio.
-	// except have bullets and particles go outside the screen.
-	// could get rid of the gameport as now, and just have a normal one that takes up the whole screen. and inforce it myself. by having
-	// xOff and yOff. so instead of being "x = WIDTH/2;" it would be "x = xOff + WIDTH/2;".
-	// xOff or yOff would be 0, and the other would be 0 if the aspect ratio is perfect, otherwise it would be some positive value.
-
-
 	// STATIC
 	public static final int MENU_STATE = 0;
 	public static final int PLAY_STATE = 1;
@@ -56,25 +44,20 @@ public class SpaceInvaders extends Game {
 	public static float viewportWidth = SpaceInvaders.WIDTH;
 	public static float viewportHeight = SpaceInvaders.HEIGHT;
 
-	public static final int UNIT = 10;//12;
+	public static final int UNIT = 10;
 
 	public static final int MAX_SCORE  = 3780;
 
-	public static Texture BACKGROUND;
 	public static Texture SPRITE_SHEET;
 
-	public static float volume = 0.1f;//1.0f; // TODO: change volume back to 1.0
+	public static float volume = 1.0f;
 
 	// CLASS
-	private int SIDE_BAR_WIDTH;
-
 	public SpriteBatch sb;
 	public ShapeRenderer sr;
 
 	private int currentState;
 	private GameScreen[] screens;
-
-	private OrthographicCamera cam;
 
 	private InputHandler inputHandler;
 
@@ -84,6 +67,7 @@ public class SpaceInvaders extends Game {
 
 	@Override
 	public void create () {
+
 		initXOffYOffVpWidthVpHeight();
 		prefs = Gdx.app.getPreferences("HighScore");
 		Gdx.graphics.setContinuousRendering(true);
@@ -91,47 +75,29 @@ public class SpaceInvaders extends Game {
 		initAssets();
 
 		// Camera setups
-		cam = new OrthographicCamera(viewportWidth, viewportHeight);
-//		cam = new OrthographicCamera(WIDTH, HEIGHT);
+		OrthographicCamera cam = new OrthographicCamera(viewportWidth, viewportHeight);
 		cam.translate(viewportWidth / 2, viewportHeight / 2);
 		cam.translate(-xOff, -yOff);
-//		cam.translate(WIDTH / 2, HEIGHT / 2);
 		cam.update();
 
-//		bgCam = new OrthographicCamera(WIDTH, HEIGHT);
-//		bgCam.translate(WIDTH / 2, HEIGHT / 2);
-//		bgCam.update();
-
 		// Viewport Setups
-		gameport = new FitViewport((float)viewportWidth, (float)viewportHeight, cam);
-//		gameport = new FitViewport(WIDTH, HEIGHT, cam);
-//		gameport = new ScalingViewport(Scaling.fit, (float)viewportWidth, (float)viewportHeight, cam);
-//		gameport = new ScalingViewport(Scaling.fit, WIDTH, HEIGHT, cam);
-//		bgport = new FillViewport(WIDTH, HEIGHT, bgCam);
-
-		//calculateSideBarWidth(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		gameport = new FitViewport(viewportWidth, viewportHeight, cam);
 
 		// Batches and Renderer setups
 		sb = new SpriteBatch();
 		sb.setProjectionMatrix(cam.combined);
 
-//		bgBatch = new SpriteBatch();
-//		bgBatch.setProjectionMatrix(bgCam.combined);
-
 		sr = new ShapeRenderer();
 		sr.setProjectionMatrix(cam.combined);
-//		sr.setProjectionMatrix(bgCam.combined);
-
-//		bgSr = new ShapeRenderer();
-//		bgSr.setProjectionMatrix(bgCam.combined);
 
 		// Screens setup
 		Player p1 = new Player();
 		Array<ParticleEffect> particleEffects = new Array<ParticleEffect>(false, 2);
-		Collision collision = new Collision(p1, particleEffects);
 		screens = new GameScreen[4];
-//		currentState = MENU_STATE;
-		currentState = TUTORIAL_STATE;
+		if(getHighScore() == 0)
+			currentState = TUTORIAL_STATE;
+		else
+			currentState = MENU_STATE;
 		screens[MENU_STATE] = new MenuScreen(this, p1, particleEffects);
 		screens[PLAY_STATE] = new PlayScreen(this, p1, particleEffects);
 		screens[GAMEOVER_STATE] = new GameOverScreen(this, p1, particleEffects);
@@ -154,7 +120,6 @@ public class SpaceInvaders extends Game {
 	}
 
 	public void initAssets(){
-		BACKGROUND = new Texture("sunset6.png");
 		SPRITE_SHEET = new Texture("spriteSheet2.png");
 		EnemyOne.IMAGE_ONE = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 0, 0, 12, 8);
 		EnemyOne.IMAGE_TWO = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 12, 0, 12, 8);
@@ -169,11 +134,14 @@ public class SpaceInvaders extends Game {
 		Player.gong = Gdx.audio.newSound(Gdx.files.internal("gongTrimmed.wav"));
 		Player.shootSound = Gdx.audio.newSound( Gdx.files.internal("enemyShoot.wav"));
 		Player.hitSound = Gdx.audio.newSound( Gdx.files.internal("explosion16bit.wav"));
+		Swarm.moveSound = Gdx.audio.newSound( Gdx.files.internal("fastinvader116bit.wav"));
 
 		Button.exitSymbol = new Texture("exitSymbol.png");
-		Button.playSymbol = new Texture("playSymbol.png");
+		Button.playSymbol = new Texture("playSymbol512.png");
 		Button.settingsSymbol = new Texture("settingsSymbol.png");
 		Button.retrySymbol = new Texture("retrySymbol.png");
+		Button.tutorialSymbol = new Texture("questionSymbol512.png");
+		Button.okaySymbol = new Texture("thumbsUp512.png");
 	}
 
 	@Override
@@ -191,8 +159,8 @@ public class SpaceInvaders extends Game {
 		Player.gong.dispose();
 		Player.shootSound.dispose();
 		Player.hitSound.dispose();
+		Swarm.moveSound.dispose();
 
-		BACKGROUND.dispose();
 		SPRITE_SHEET.dispose();
 		Button.exitSymbol.dispose();
 		Button.playSymbol.dispose();
@@ -200,60 +168,23 @@ public class SpaceInvaders extends Game {
 		Button.retrySymbol.dispose();
 
 		sb.dispose();
-//		bgBatch.dispose();
 		sr.dispose();
-//		bgSr.dispose();
 		for(int i = 0; i < screens.length; ++i)
 			screens[i].dispose();
 	}
 
 	@Override
-	public void resume(){
-
-	}
-
+	public void resume(){}
 	@Override
-	public void pause(){
-
-	}
+	public void pause(){}
 
 	@Override
 	public void resize(int width, int height){
-//		bgport.update(width, height);
-
-		// TODO: do i need to hangle this?
 		gameport.update(width, height);
-//		gameport.update((int)viewportWidth, (int)viewportHeight);
-
-
-//		// TEST
-//		if(WIDTH/HEIGHT > 16/9){
-//			double unit = HEIGHT/9.0;
-//			double actualWidth = 16*unit;
-//			double extraWidth = WIDTH - actualWidth;
-//			gameport.update((int)actualWidth, HEIGHT, true);
-////			gameport.setScreenX((int)extraWidth/2);
-//		}
-//		else if(WIDTH/HEIGHT < 16/9){
-//			double unit = WIDTH/16.0;
-//			double actualHeight = 9*unit;
-//			double extraHeight = HEIGHT - actualHeight;
-//			gameport.update(WIDTH, (int)actualHeight, true);
-////			gameport.setScreenY((int)extraHeight/2);
-//		}
-//		else{
-//			gameport.update(WIDTH, HEIGHT);
-//		}
-//
-//		cam.update();
-////		bgCam.update();
-
-
-//		calculateSideBarWidth(width, height);
 	}
 
 	public void changeScreen(int screen){
-		if(screen < 0 || screen > 3)
+		if(screen < 0 || screen > 4)
 			return;
 
 		currentState = screen;
@@ -282,7 +213,6 @@ public class SpaceInvaders extends Game {
 	}
 
 	public void initXOffYOffVpWidthVpHeight(){
-		// TODO: extra width is working, now copy same logic into extra height
 		float deviceWidth = Gdx.graphics.getWidth();
 		float deviceHeight = Gdx.graphics.getHeight();
 		float deviceRatio = deviceWidth/deviceHeight;
@@ -295,19 +225,16 @@ public class SpaceInvaders extends Game {
 			yOff = 0;
 			viewportHeight = SpaceInvaders.HEIGHT;
 			viewportWidth = SpaceInvaders.WIDTH * widthScale;
-//			xOff = (viewportWidth-SpaceInvaders.HEIGHT)/2;
 		}
 		else if(neededRatio > deviceRatio){
 			// device has extra height
 			float ourHeight = deviceWidth*(9f/16f);
 			float heightScale = deviceHeight/ourHeight;
 			xOff = 0;
-//			yOff = (deviceHeight - ourHeight)/2f;
 			viewportWidth = SpaceInvaders.WIDTH;
 			viewportHeight = SpaceInvaders.HEIGHT * heightScale;
 			yOff = (viewportHeight-SpaceInvaders.HEIGHT)/2;
 		}
-
 	}
 
 }

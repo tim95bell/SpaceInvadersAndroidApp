@@ -3,9 +3,6 @@ package com.timbell.spaceinvaders.ParticleEffect;
 import com.badlogic.gdx.utils.Array;
 
 
-/**
- * Created by timbell on 3/09/16.
- */
 public class ParticleEffectPool {
 
     public static final int SMALL_SIZE = 50;

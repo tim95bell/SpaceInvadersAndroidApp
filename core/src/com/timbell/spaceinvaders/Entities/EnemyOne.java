@@ -7,14 +7,9 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-/**
- * Created by timbell on 4/08/16.
- */
 public class EnemyOne extends Enemy {
 
     public static final Color COLOR = new Color(1.0f, 0.4f, 0.4f, 1f);
-//    public static final Color COLOR = new Color(1.0f, 0.5f, 0.5f, 1f);
-//public static final Color COLOR = new Color(1.0f, 0.0f, 0.0f, 1f);
     public static TextureRegion IMAGE_ONE;
     public static TextureRegion IMAGE_TWO;
     public static final int WIDTH = SpaceInvaders.UNIT*3;
@@ -47,9 +42,6 @@ public class EnemyOne extends Enemy {
     }
 
     public void shoot(Bullet bullet){
-//        shootSound.play();
-        // TODO: this has been changed for an experiment
-//        bullet.reset((int)(rect.x + rect.WIDTH / 2 - BULLET_WIDTH / 2), (int)(rect.y + rect.HEIGHT), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, COLOR, Bullet.Type.RECT);
         bullet.reset((int)(rect.x + rect.width / 2 - BULLET_WIDTH / 2), (int)(rect.y + rect.height), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, Color.RED, Bullet.Type.RECT);
     }
 

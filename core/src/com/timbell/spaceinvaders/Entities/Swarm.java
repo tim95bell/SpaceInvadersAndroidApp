@@ -4,13 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.Level.Level;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-/**
- * Created by timbell on 3/08/16.
- */
 public class Swarm {
 
     public enum State{
@@ -19,16 +15,13 @@ public class Swarm {
 
     public static final int ROWS = 5;
     public static final int COLS = 10;
+    public static Sound moveSound;
 
-//    private float enterPos;
     private boolean entering;
 
     private int direction = 1;
-
     public static final int START_HEIGHT = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*4;
-
     private State state;
-
     private int numTimesMovedDown;
 
     public Enemy[] members;
@@ -37,15 +30,10 @@ public class Swarm {
     private int numBullets;
     private int numMembersAlive;
 
-
     private float movePeriod;
     private float timeSinceMove = 0;
     private float shootChance = 0.1f;
-
     private float minMovePeriod, maxMovePeriod, minShootChance, maxShootChance;
-
-    private Sound moveSound;
-
 
     public Swarm(){
         members = new Enemy[ROWS*COLS];
@@ -56,11 +44,6 @@ public class Swarm {
         int swarmWidth = (COLS*3*SpaceInvaders.UNIT) + (COLS-1)*SpaceInvaders.UNIT;
         sideWidth = (SpaceInvaders.WIDTH-swarmWidth)/2.0;
         this.moveSound = Gdx.audio.newSound(Gdx.files.internal("fastinvader116bit.wav"));
-        reset();
-    }
-
-    // TODO: complete reset
-    public void reset(){
         entering = true;
         numBullets = 0;
         numTimesMovedDown = 0;
@@ -71,12 +54,10 @@ public class Swarm {
         if(state == State.PAUSED)
             return false;
 
-
         boolean gameOver = false;
 
         timeSinceMove += delta;
         while(timeSinceMove > movePeriod) {
-            //TODO uncomment this
             moveSound.play(SpaceInvaders.volume);
             Enemy.changeImage();
 
@@ -173,7 +154,6 @@ public class Swarm {
 
     public void loadLevel(Level level){
         numMembersAlive = 0;
-
         for(int x = 0; x < COLS; ++x){
             for(int y = 0; y < ROWS; ++y){
                 int membersIndex = x*ROWS + y;
@@ -215,17 +195,17 @@ public class Swarm {
 
         this.numBullets = 0;
         movePeriod = maxMovePeriod;
+        entering = true;
+        numTimesMovedDown = 0;
+        this.state = State.NORMAL;
     }
 
     public void memberDied(int index){
         --numMembersAlive;
         float percent = (float)(numMembersAlive)/(float)(ROWS*COLS);
-//        float percentSqr = percent*percent;
         float percentSqrt = (float)Math.sqrt((double)percent);
-//        movePeriod = 0.1f + percentSqrt*0.9f;
         movePeriod = minMovePeriod + percentSqrt*(maxMovePeriod-minMovePeriod);
         shootChance = minShootChance + (1f - percentSqrt)*(maxShootChance-minShootChance);
-
 
         if(members[index].isShooter()) {
             --index;
@@ -260,8 +240,5 @@ public class Swarm {
     }
 
     public int getNumTimesMovedDown() { return numTimesMovedDown; }
-
-
-
 
 }

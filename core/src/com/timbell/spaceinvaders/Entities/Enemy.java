@@ -1,21 +1,12 @@
 package com.timbell.spaceinvaders.Entities;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
-import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-
-
-/**
- * Created by timbell on 3/08/16.
- */
 public abstract class Enemy {
 
     public static final int BULLET_WIDTH = 5;
@@ -33,7 +24,6 @@ public abstract class Enemy {
     protected Swarm swarm;
 
     protected int index;
-
 
     public Enemy(Swarm swarm, int x, int y, int width, int height, int index){
         this.rect = new Rectangle(x, y, width, height);

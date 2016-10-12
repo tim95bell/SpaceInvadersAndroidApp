@@ -4,9 +4,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-/**
- * Created by timbell on 2/09/16.
- */
 public class Particle{
     private Vector2 loc;
     private Vector2 vel;
@@ -44,7 +41,6 @@ public class Particle{
         loc = new Vector2(x, y);
         vel = new Vector2( (float)Math.random()*0.4f-0.2f, (float)Math.random()*0.4f-0.2f );
     }
-
 
     public void update(float delta){
         if(vel.len() > 10) {
@@ -85,32 +81,63 @@ public class Particle{
     }
 
     public void bounds(){
+        bounds(1);
+    }
+
+    public void bounds(float bouncyness){
         if(loc.x < 0) {
             loc.x = 0;
             vel.x *= -0.5;
             if(vel.x < 0)
-                vel.x *= -1;
+                vel.x *= -bouncyness;
         }
         else if(loc.x > SpaceInvaders.WIDTH){
             loc.x = SpaceInvaders.WIDTH;
             vel.x *= -0.5;
             if(vel.x > 0)
-                vel.x *= -1;
+                vel.x *= -bouncyness;
         }
 
         if(loc.y < -SpaceInvaders.yOff) {
             loc.y = -SpaceInvaders.yOff;
             vel.y *= -0.5;
             if(vel.y < 0)
-                vel.y *= -1;
+                vel.y *= -bouncyness;
         }
         else if(loc.y > SpaceInvaders.HEIGHT+SpaceInvaders.yOff){
             loc.y = SpaceInvaders.HEIGHT+SpaceInvaders.yOff;
             vel.y *= -0.5;
             if(vel.y > 0)
-                vel.y *= -1;
+                vel.y *= -bouncyness;
+        }
+    }
+
+    public void boundsStop(){
+        if(loc.x < 0) {
+            loc.x = 0;
+            vel.x *= -0.5;
+            if(vel.x < 0)
+                vel.x = 0;
+        }
+        else if(loc.x > SpaceInvaders.WIDTH){
+            loc.x = SpaceInvaders.WIDTH;
+            vel.x *= -0.5;
+            if(vel.x > 0)
+                vel.x = 0;
         }
 
+        if(loc.y < -SpaceInvaders.yOff) {
+            loc.y = -SpaceInvaders.yOff;
+            vel.y *= -0.5;
+            if(vel.y < 0)
+                vel.y = 0;
+        }
+        else if(loc.y > SpaceInvaders.HEIGHT+SpaceInvaders.yOff){
+            loc.y = SpaceInvaders.HEIGHT+SpaceInvaders.yOff;
+            vel.y *= -0.5;
+            if(vel.y > 0)
+                vel.y = 0;
+        }
     }
 
     public float getX(){
@@ -124,9 +151,21 @@ public class Particle{
     public float getVelX(){
         return vel.x;
     }
+    public float getVelY(){
+        return vel.y;
+    }
 
     public void slowXVel(){
-        vel.x *= 0.95;
+        slowXVel(0.95f);
+    }
+    public void slowYVel(){
+        slowYVel(0.95f);
+    }
+    public void slowXVel(float multiplier){
+        vel.x *= multiplier;
+    }
+    public void slowYVel(float multiplier){
+        vel.y *= multiplier;
     }
 
 }// END Class Particle

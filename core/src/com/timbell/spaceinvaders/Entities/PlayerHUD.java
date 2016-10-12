@@ -7,17 +7,10 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.Array;
-import com.timbell.spaceinvaders.GameScreens.PlayScreen;
 import com.timbell.spaceinvaders.ParticleEffect.AttractingParticleEffect;
-import com.timbell.spaceinvaders.ParticleEffect.Particle;
-import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.SpaceInvaders;
 import com.timbell.spaceinvaders.Entities.Player.Powerup;
 
-/**
- * Created by timbell on 10/10/16.
- */
 public class PlayerHUD {
 
     private Player p1;
@@ -30,7 +23,6 @@ public class PlayerHUD {
     private float topOfUpper;
 
     private AttractingParticleEffect attractingParticleEffect;
-    private float attractorX, attractorY;
     private float powerupTextX, powerupTextY, powerupTextWidth, powerupTextHeight;
     private float percentAlive;
 
@@ -54,15 +46,13 @@ public class PlayerHUD {
         if(attractingParticleEffect.getNumAlive() > 0) {
             attractingParticleEffect.update(delta);
         }
-        // get new x and y
+
         percentAlive = ((float)attractingParticleEffect.getNumAlive()) / ((float)AttractingParticleEffect.NUM_PARTICLES);
-        //set new x and y on apf
         attractingParticleEffect.setAttractor( powerupTextX + (1f-percentAlive)*powerupTextWidth, powerupTextY + powerupTextHeight/2 );
     }
 
-    public void setAttractingParticleEffect(float x, float y, float xSpread, float ySpread, Color color){    //AttractingParticleEffect pe){
-//        attractingParticleEffect = pe;
-        attractingParticleEffect.reset((int)x, (int)y, (int)xSpread, (int)ySpread, color, attractorX, attractorY);
+    public void setAttractingParticleEffect(float x, float y, float xSpread, float ySpread, Color color){
+        attractingParticleEffect.reset((int)x, (int)y, (int)xSpread, (int)ySpread, color, powerupTextX + (1f-percentAlive)*powerupTextWidth, powerupTextY + powerupTextHeight/2);
 
         layout.setText(font, String.format("%s : %.0f", p1.getPowerupString(p1.getPowerup()), p1.getPowerupTimeLeft()));
         powerupTextX = SpaceInvaders.WIDTH - layout.width / 4 * 5;
@@ -86,10 +76,10 @@ public class PlayerHUD {
         }
 
         // BULLET ONE
-        sr.rect(10, SpaceInvaders.UNIT / 3f - SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * p1.getShootTimePercent(), SpaceInvaders.UNIT / 3f);
+        sr.rect(10, SpaceInvaders.UNIT / 3f - SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * p1.getBulletOneShootTimePercent(), SpaceInvaders.UNIT / 3f);
         // BULLET TWO
         if(p1.getPowerup() == Player.Powerup.DOUBLESHOT)
-            sr.rect(10, SpaceInvaders.UNIT-SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * p1.getShootTimePercent(), SpaceInvaders.UNIT / 3f);
+            sr.rect(10, SpaceInvaders.UNIT-SpaceInvaders.yOff, SpaceInvaders.UNIT * 12 * p1.getBulletTwoShootTimePercent(), SpaceInvaders.UNIT / 3f);
         // ATTRACTING PARTICLES
         if(attractingParticleEffect.getNumAlive() > 0) {
             attractingParticleEffect.draw(sr);
@@ -121,23 +111,4 @@ public class PlayerHUD {
         }
     }
 
-//    // TODO get this working
-//    public void drawPowerupCover(ShapeRenderer sr){
-//        // this must be called before drawScoreAndLivesTextAndPowerup()
-//        float scale = 0.6f;
-//        float y = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT * (scale / 2) + SpaceInvaders.yOff;
-//        if(powerup != Powerup.NONE){
-//            layout.setText( font, String.format("%s : %.0f", getPowerupString(powerup), powerupTimeLeft) );
-//            sr.setColor(currentScreen.BG_COLOR);
-//            sr.rect(SpaceInvaders.WIDTH - layout.width / 4 * 5, y-layout.height, layout.width, layout.height);
-//        }
-//    }
-
-    public float getAttractorX(){
-        return attractorX;
-    }
-
-    public float getAttractorY(){
-        return attractorY;
-    }
 }

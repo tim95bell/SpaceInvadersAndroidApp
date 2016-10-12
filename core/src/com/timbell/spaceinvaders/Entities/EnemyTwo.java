@@ -7,9 +7,6 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-/**
- * Created by timbell on 4/08/16.
- */
 public class EnemyTwo extends Enemy {
 
     public static final Color COLOR = new Color(0.4f, 1.0f, 0.4f, 1f);
@@ -62,8 +59,6 @@ public class EnemyTwo extends Enemy {
     }
 
     public void shoot(Bullet bullet) {
-//        shootSound.play();
-        // TODO: this has been changed for an experiment
         bullet.reset((int) (rect.x + rect.width / 2 - BULLET_WIDTH / 2), (int) (rect.y + rect.height), BULLET_WIDTH, BULLET_HEIGHT, BULLET_SPEED, Color.GREEN, Bullet.Type.RECT);
     }
 

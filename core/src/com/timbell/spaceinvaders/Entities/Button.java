@@ -1,31 +1,27 @@
 package com.timbell.spaceinvaders.Entities;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
-import com.timbell.spaceinvaders.ParticleEffect.Particle;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-/**
- * Created by timbell on 6/08/16.
- */
 public class Button {
 
     public static Texture exitSymbol;
     public static Texture playSymbol;
     public static Texture settingsSymbol;
     public static Texture retrySymbol;
+    public static Texture tutorialSymbol;
+    public static Texture okaySymbol;
 
     public static Sound hitSound;
 
     public enum ButtonSymbol{
-        EXIT, PLAY, SETTINGS, RETRY
+        EXIT, PLAY, SETTINGS, RETRY, TUTORIAL, OKAY
     }
 
     private float x, y, symX, symY;
@@ -60,9 +56,12 @@ public class Button {
             this.symbol = settingsSymbol;
         else if(type == ButtonSymbol.RETRY)
             this.symbol = retrySymbol;
+        else if(type == ButtonSymbol.TUTORIAL)
+            this.symbol = tutorialSymbol;
+        else if(type == ButtonSymbol.OKAY)
+            this.symbol = okaySymbol;
     }
 
-    // TODO: implement reset
     public void reset(){
         this.visible = true;
     }
@@ -71,29 +70,12 @@ public class Button {
         symbol.dispose();
     }
 
-
     public void drawShape(ShapeRenderer sr, float transparancy){
         if(!visible)
             return;
 
-//        float circleRadius = size/5;//size/8;
-//        //rect1
-//        sr.setColor(buttonColor);
-//        sr.rect(x, y + circleRadius, size, size - (circleRadius*2));
-//        //rect2
-//        sr.rect(x + circleRadius, y, size - (circleRadius * 2), size);
-//        //bottom left circle
-//        sr.circle(x+circleRadius, y+circleRadius, circleRadius);
-//        //bottom right circle
-//        sr.circle(x + size-circleRadius, y+circleRadius, circleRadius);
-//        //top Left circle
-//        sr.circle(x+circleRadius, y + size-circleRadius, circleRadius);
-//        // top right circle
-//        sr.circle(x + size - circleRadius, y + size - circleRadius, circleRadius);
-
         sr.setColor(buttonColor.r, buttonColor.g, buttonColor.b, transparancy);
         sr.rect(x, y, size, size);
-
     }
 
     public void drawSymbol(SpriteBatch sb, float transparancy){

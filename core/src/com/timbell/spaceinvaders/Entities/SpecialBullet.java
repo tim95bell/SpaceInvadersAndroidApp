@@ -5,15 +5,11 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.badlogic.gdx.graphics.Color;
 
-/**
- * Created by timbell on 2/10/16.
- */
 public class SpecialBullet extends Bullet {
 
     public enum Direction{
         VERTICAL, LEFT, RIGHT
     }
-
     private final int SIZE = 10;
 
     private boolean isDead;
@@ -25,7 +21,6 @@ public class SpecialBullet extends Bullet {
         this.isDead = true;
     }
 
-    //public void reset(int x, int y, int WIDTH, int HEIGHT, float xSpeed, float ySpeed, Color color,Type type){
     public void reset(int x, int y, Direction direction){
         this.isDead = false;
         this.hasHadFirstHit = false;

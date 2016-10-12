@@ -2,9 +2,6 @@ package com.timbell.spaceinvaders.Level;
 
 import com.badlogic.gdx.utils.Array;
 
-/**
- * Created by timbell on 9/09/16.
- */
 public class Level {
     private float minMovePeriod, maxMovePeriod;
     private float minShootChance, maxShootChance;
@@ -36,11 +33,6 @@ public class Level {
                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-//                0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//                0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//                1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-//                1, 1, 1, 0, 0, 0, 0, 0, 0, 0
         };
         Level level = new Level("Stage - 1.0", 0.1f, 0.5f, 0.01f, 0.05f, levelArray);
         return level;
@@ -96,18 +88,13 @@ public class Level {
 
     public static Level levelTest(){
         int[] levelArray = {
-//                1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-//                2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-//                2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-//                3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-//                3, 3, 3, 3, 3, 3, 3, 3, 3, 3
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
                 1, 1, 1, 0, 0, 0, 0, 0, 0, 0
         };
-        Level level = new Level("Stage - 3.1", 0.09f, 0.2f, 0.01f, 0.04f, levelArray);
+        Level level = new Level("Stage - Test", 0.09f, 0.2f, 0.01f, 0.04f, levelArray);
         return level;
     }
 

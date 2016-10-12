@@ -7,13 +7,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-/**
- * Created by timbell on 1/09/16.
- */
 public class ParticleEffect {
 
     public static final float SPEED = 0.5f;
-//    public static final int LIFETIME = 5;
     public static final int LIFETIME = 3;
 
     private float timeElapsed = 0;
@@ -76,7 +72,7 @@ public class ParticleEffect {
             // if loc is inside sym
             if(loc.x > symX && loc.x < symX+symSize && loc.y > symY && loc.y < symY+symSize) {
                 Color color = new Color();
-                Color.rgba8888ToColor(color, pMap.getPixel((int) (scale*(loc.x - symX)), (int) (scale*(loc.y - symY)) ));
+                Color.rgba8888ToColor(color, pMap.getPixel((int) (scale*(loc.x - symX)), (int) (scale*(symSize- (loc.y - symY))) ));
                 if (color.equals(Color.BLACK))
                     insideArr.add(new Particle(loc.x, loc.y));
                 else
@@ -134,8 +130,5 @@ public class ParticleEffect {
     public boolean isDead(){
         return dead;
     }
-
-
-
 
 }// END Class ParticleEffect

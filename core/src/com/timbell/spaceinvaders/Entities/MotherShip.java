@@ -12,15 +12,12 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-
-/**
- * Created by timbell on 9/09/16.
- */
 public class MotherShip {
 
     public enum State{
         ALIVE, DYING, DEAD, PAUSED
     }
+    private State state;
 
     private static final float WIDTH = SpaceInvaders.UNIT*4;
     private static final float HEIGHT = SpaceInvaders.UNIT*1.5f;
@@ -31,8 +28,6 @@ public class MotherShip {
     private Rectangle rect;
     private float xSpeed;
 
-    private State state;
-
     private float startOffset = SpaceInvaders.UNIT;
 
     private BitmapFont font;
@@ -40,7 +35,6 @@ public class MotherShip {
 
     private final int dyingPeriod = 3;
     private float dyingTime;
-
 
     public MotherShip(){
         this.state = State.DEAD;
@@ -90,7 +84,7 @@ public class MotherShip {
             sb.draw(image, rect.x, rect.y, rect.width, rect.height);
         }
         else if(state == State.DYING){
-            float x = rect.x+rect.width/2;//layout.WIDTH/4;
+            float x = rect.x+rect.width/2;
             if(x-layout.width/2 < 0)
                 x = layout.width/2;
             else if(x+layout.width/2 > SpaceInvaders.WIDTH)

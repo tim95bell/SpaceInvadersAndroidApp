@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
-import com.timbell.spaceinvaders.Collision.Collision;
 import com.timbell.spaceinvaders.Entities.Bullet;
 import com.timbell.spaceinvaders.Entities.Enemy;
 import com.timbell.spaceinvaders.Entities.MotherShip;
@@ -22,9 +21,6 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-/**
- * Created by timbell on 18/07/16.
- */
 public class PlayScreen extends GameScreen {
 
     public static final Color BG_COLOR = new Color(0f, 0f, 0f, 1f);
@@ -72,7 +68,6 @@ public class PlayScreen extends GameScreen {
         if(levels.size > 0) {
 
             this.state = STATE_ENTERING;
-            swarm.reset();
             p1.setState(Player.State.ENTERING);
             p1.killSpecialBullet();
             this.enterPos = START_ENTER_POS;
@@ -99,7 +94,7 @@ public class PlayScreen extends GameScreen {
 
             // spawn a mothership ??
             if( (motherShip.getState() == MotherShip.State.DEAD)  &&  swarm.getNumTimesMovedDown() > 2  && (!p1.isDead()) ) {
-                if( Math.random()*10 <  ((double)0.5)*delta )
+                if( Math.random()*10 <  (0.5)*delta )
                     motherShip.reset();
             }
             // update mothership
@@ -388,7 +383,7 @@ public class PlayScreen extends GameScreen {
 
     @Override
     public void dispose() {
-
+        font.dispose();
     }
 
     //-----------------INPUT-----------------//

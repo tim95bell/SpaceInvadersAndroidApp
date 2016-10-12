@@ -4,37 +4,28 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.timbell.spaceinvaders.GameScreens.GameOverScreen;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
 import com.timbell.spaceinvaders.GameScreens.PlayScreen;
-import com.timbell.spaceinvaders.ParticleEffect.AttractingParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
 import com.badlogic.gdx.math.Rectangle;
 
-/**
- * Created by timbell on 21/07/16.
- */
 public class Player {
-
     public enum Powerup{
         NONE, DOUBLESHOT, LEFTSHOT, RIGHTSHOT, VERTICALSHOT
     }
-
     public enum State{
         ENTERING, NORMAL, RESPAWNING, DEAD
     }
-
     private State state;
+    private Powerup powerup;
+    private float powerupTimeLeft;
 
     public static final int WIDTH = (int)(SpaceInvaders.UNIT*3.5);
     public static final int HEIGHT = (int)(SpaceInvaders.UNIT*2);
@@ -66,14 +57,11 @@ public class Player {
     private float bulletOneShootTime;
     private float bulletTwoShootTime;
 
-    private Powerup powerup;
-    private float powerupTimeLeft;
-
     private float respawnTimer;
     private final float respawnTime = 4;
 
     private PlayerHUD hud;
-//    private AttractingParticleEffect attractingParticleEffect;
+
 
     public Player(){
         this.loc = new Vector2(SpaceInvaders.WIDTH/2 - WIDTH /2f, Y);
@@ -87,7 +75,6 @@ public class Player {
         this.bullets = new Bullet[]{new Bullet(), new Bullet()};
         this.specialBullet = new SpecialBullet();
         this.hud = new PlayerHUD(this);
-//        this.attractingParticleEffect = new AttractingParticleEffect();
 
         reset();
     }
@@ -104,7 +91,6 @@ public class Player {
         this.bulletTwoShootTime = shootPeriod;
         this.state = State.NORMAL;
         this.score = 0;
-//        this.attractingParticleEffect.die();
     }
 
     public void setCurrentScreen(GameScreen currentScreen){
@@ -115,15 +101,10 @@ public class Player {
         if( isRespawning() ){
             float alpha;
             float startFlashingAt = respawnTime/8;
-            if(respawnTime < startFlashingAt){
-                alpha = 0;
-            }
-            else {
-                float flashTime = (respawnTime-startFlashingAt)/3;
-                alpha = ((respawnTimer-startFlashingAt) % flashTime) * (2 / flashTime);
-                if (alpha > 1)
-                    alpha = 1 - (alpha - 1);
-            }
+            float flashTime = (respawnTime-startFlashingAt)/3;
+            alpha = ((respawnTimer-startFlashingAt) % flashTime) * (2 / flashTime);
+            if (alpha > 1)
+                alpha = 1 - (alpha - 1);
 
             sr.setColor(color.r, color.g, color.b, alpha);
         }
@@ -299,8 +280,6 @@ public class Player {
         }
     }
 
-    // TODO: make player respawn, flash, while swarm is paused and its bullets are removed. then  everything resumes. WHEN HIT
-
     public ParticleEffect hit(){
         if(lives > 0)
             --lives;
@@ -330,7 +309,6 @@ public class Player {
         clearBullets();
         powerup = Powerup.NONE;
         xVel = 0;
-        // center player
         center();
     }
 
@@ -342,7 +320,7 @@ public class Player {
         if(numBullets > 1) {
             if (bullets[1].getX() < 0 ||
                     bullets[1].getX() + bullets[1].getWidth() > SpaceInvaders.WIDTH ||
-                    bullets[1].getY() + bullets[1].getHeight() > SpaceInvaders.HEIGHT) {
+                    bullets[1].getY() + bullets[1].getHeight() > SpaceInvaders.HEIGHT+SpaceInvaders.yOff) {
                 particleEffects[0] = bullets[1].hit();
                 removeBullet(1);
                 gong.play(SpaceInvaders.volume);
@@ -353,7 +331,7 @@ public class Player {
         if(numBullets > 0){
             if (bullets[0].getX() < 0 ||
                     bullets[0].getX() + bullets[0].getWidth() > SpaceInvaders.WIDTH ||
-                    bullets[0].getY() + bullets[0].getHeight() > SpaceInvaders.HEIGHT) {
+                    bullets[0].getY() + bullets[0].getHeight() > SpaceInvaders.HEIGHT+SpaceInvaders.yOff) {
                 particleEffects[1] = bullets[0].hit();
                 removeBullet(0);
                 gong.play(SpaceInvaders.volume);
@@ -401,8 +379,6 @@ public class Player {
     public Color getBackgroundColor(){
         return ((PlayScreen)currentScreen).getBackgroundColor();
     }
-
-
 
     public float getX(){
         return loc.x;
@@ -462,8 +438,6 @@ public class Player {
     }
 
     public void setAttractingParticleEffect(float x, float y, float xSpread, float ySpread, Color color){
-//        this.attractingParticleEffect.reset((int)x, (int)y, (int)xSpread, (int)ySpread, color, hud.getAttractorX(), hud.getAttractorY());
-//        hud.setAttractingParticleEffect(this.attractingParticleEffect);
         hud.setAttractingParticleEffect((int) x, (int) y, (int) xSpread, (int) ySpread, color);
     }
 
@@ -494,8 +468,11 @@ public class Player {
         return state == State.RESPAWNING;
     }
 
-    public float getShootTimePercent(){
+    public float getBulletOneShootTimePercent(){
         return bulletOneShootTime / shootPeriod;
+    }
+    public float getBulletTwoShootTimePercent(){
+        return bulletTwoShootTime / shootPeriod;
     }
 
     public Powerup getPowerup(){

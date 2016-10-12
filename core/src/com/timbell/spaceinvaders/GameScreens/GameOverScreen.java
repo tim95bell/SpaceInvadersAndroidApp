@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
-import com.timbell.spaceinvaders.Collision.Collision;
 import com.timbell.spaceinvaders.Entities.Button;
 import com.timbell.spaceinvaders.Entities.Player;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
@@ -18,10 +17,6 @@ import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
-
-/**
- * Created by timbell on 5/09/16.
- */
 public class GameOverScreen extends GameScreen {
 
     public static final Color BG_COLOR = new Color(0.88f, 0.4f, 0.4f, 0.75f);
@@ -31,10 +26,6 @@ public class GameOverScreen extends GameScreen {
     private GlyphLayout fontLayout;
     private String mainText, thisScoreText, oldHighScoreText;
     private int oldHighScore, thisScore;
-
-    public enum State{
-        ENTERING, NORMAL, TRANSITION_PLAY, TRANSITION_MENU
-    }
 
     public GameOverScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects) {
         super(game, p1, particleEffects);
@@ -182,7 +173,9 @@ public class GameOverScreen extends GameScreen {
 
     @Override
     public void dispose() {
-
+        font.dispose();
+        retryButton.dispose();
+        mainMenuButton.dispose();
     }
 
     public void collision(){
@@ -196,7 +189,6 @@ public class GameOverScreen extends GameScreen {
             for(int p = 0; p < particles.length; ++p) {
                 float pX = particles[p].getX();
                 float pY = particles[p].getY();
-
                 //player
                 p1.getLocationRects(recievePlayerRectangles);
                 for(int j = 0; j < recievePlayerRectangles.length; ++j) {
@@ -204,10 +196,8 @@ public class GameOverScreen extends GameScreen {
                         particles[p].bounce(recievePlayerRectangles[j].getX(), recievePlayerRectangles[j].getY(), (int)recievePlayerRectangles[j].getWidth(), (int)recievePlayerRectangles[j].getHeight());
                     }
                 }
-
                 //bounds
                 particles[p].bounds();
-
                 // buttons
                 if (retryButton.visible && retryButton.getRect().contains(pX, pY)) {
                     particles[p].bounce(retryButton.getX(), retryButton.getY(), (int) retryButton.getSize(), (int) retryButton.getSize());
@@ -215,9 +205,7 @@ public class GameOverScreen extends GameScreen {
                 if (mainMenuButton.visible && mainMenuButton.getRect().contains(pX, pY)) {
                     particles[p].bounce(mainMenuButton.getX(), mainMenuButton.getY(), (int) mainMenuButton.getSize(), (int) mainMenuButton.getSize());
                 }
-
                 //sheilds
-
             }
         } // end particles loop
 
