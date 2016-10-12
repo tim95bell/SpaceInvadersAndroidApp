@@ -98,7 +98,6 @@ public class SpaceInvaders extends Game {
 			currentState = TUTORIAL_STATE;
 		else
 			currentState = MENU_STATE;
-		currentState = MENU_STATE; // TODO: remove this line
 		screens[MENU_STATE] = new MenuScreen(this, p1, particleEffects);
 		screens[PLAY_STATE] = new PlayScreen(this, p1, particleEffects);
 		screens[GAMEOVER_STATE] = new GameOverScreen(this, p1, particleEffects);
