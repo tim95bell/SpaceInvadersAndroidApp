@@ -420,14 +420,23 @@ public class Player {
         this.powerupTimeLeft = 30;
 
         double r = MathUtils.random();
-        if(r  < 1f/3f)
+        float dividor = 6f;
+        if(lives < 3)
+            dividor = 8f;
+        if(r  < 2f/6f)
             powerup = Powerup.DOUBLESHOT;
-        else if(r  < 1f/3f*2f)
+        else if(r  < 4f/dividor)
             powerup = Powerup.VERTICALSHOT;
-        else if(r  < 1f/6f*5f)
+        else if(r  < 5f/dividor)
             powerup = Powerup.LEFTSHOT;
-        else
+        else if(r <= 6f/dividor)
             powerup = Powerup.RIGHTSHOT;
+        else {
+            powerupTimeLeft = 0;
+            if(lives < 3)
+                lives++;
+            return "Extra Life";
+        }
 
         this.powerup = powerup;
         return getPowerupString(this.powerup);

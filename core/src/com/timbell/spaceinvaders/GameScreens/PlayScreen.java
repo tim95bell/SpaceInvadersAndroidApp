@@ -8,13 +8,16 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.timbell.spaceinvaders.Entities.Bullet;
 import com.timbell.spaceinvaders.Entities.Enemy;
 import com.timbell.spaceinvaders.Entities.MotherShip;
 import com.timbell.spaceinvaders.Entities.Player;
+import com.timbell.spaceinvaders.Entities.ShieldPart;
 import com.timbell.spaceinvaders.Entities.SpecialBullet;
 import com.timbell.spaceinvaders.Entities.Swarm;
+import com.timbell.spaceinvaders.Entities.Shield;
 import com.timbell.spaceinvaders.Level.Level;
 import com.timbell.spaceinvaders.ParticleEffect.Particle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
@@ -41,11 +44,19 @@ public class PlayScreen extends GameScreen {
 
     private String levelName;
 
+    private Shield shields[];
+
     public PlayScreen(SpaceInvaders game, Player p1, Array<ParticleEffect> particleEffects){
         super(game, p1, particleEffects);
 
         this.swarm = new Swarm();
         this.motherShip = new MotherShip();
+
+        shields = new Shield[4];
+        for(int i = 0; i < shields.length; ++i){
+            float x = (i+1)*Shield.GAP_WIDTH + i*Shield.WIDTH;
+            shields[i] = new Shield(x, Shield.AT_HEIGHT, new Color(0.3f, 0.6f, 0.2f, 1.0f));
+        }
 
         this.font = new BitmapFont();
         // smooth font
@@ -60,6 +71,9 @@ public class PlayScreen extends GameScreen {
 
         loadNextLevel();
         p1.reset();
+        for(int i = 0; i < shields.length; ++i){
+            shields[i].reset();
+        }
     }
 
     public void loadNextLevel(){
@@ -189,10 +203,17 @@ public class PlayScreen extends GameScreen {
                 p1.draw(game.sr);
                 p1.drawHUDShapes(game.sr, fadeTransparancy);
                 // side bars
-                game.sr.setColor(1f,1f,1f,0.25f);
-                game.sr.rect(0-SpaceInvaders.xOff, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
+                game.sr.setColor(1f, 1f, 1f, 0.25f);
+                game.sr.rect(0 - SpaceInvaders.xOff, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
                 game.sr.rect(SpaceInvaders.WIDTH, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
             game.sr.end();
+
+            game.sb.begin();
+            for(int i = 0; i < shields.length; ++i){
+                shields[i].draw(game.sb, fadeTransparancy);
+            }
+            game.sb.end();
+
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
@@ -214,7 +235,7 @@ public class PlayScreen extends GameScreen {
         // player bullets and bounds
         particleEffects.addAll( p1.bulletsBounds() );
 
-        //playerBullets and enemies | and enemyBullets  |  motherShips
+        //playerBullets and enemies | and enemyBullets  |  motherShips, shields
         boolean bulletHit;
         for(int i = p1.getNumBullets()-1; i >= 0; --i){
             Bullet bullet = p1.bullets[i];
@@ -258,6 +279,24 @@ public class PlayScreen extends GameScreen {
                     bulletHit = true;
                 }
             }
+            // shields
+            for(int s = 0; s < shields.length; ++s){
+                Rectangle shieldRect = shields[s].getBoundingRect();
+                if(shieldRect.overlaps(bullet.getRect())){
+                    ShieldPart shieldParts[] = shields[s].shieldParts;
+                    for(int sp = 0; sp < shieldParts.length && bulletHit == false; ++sp) {
+                        if(shieldParts[sp].isAlive()) {
+                            Rectangle shieldPartRect = shieldParts[sp].getRect();
+                            if(shieldPartRect.overlaps(bullet.getRect())) {
+                                particleEffects.add(bullet.hit());
+                                particleEffects.add(shieldParts[sp].hitPlayerBullet());
+                                p1.removeBullet(i);
+                                bulletHit = true;
+                            }
+                        }
+                    }
+                }
+            }
         } // end player bullets loop
 
         //particles AND enemies, player, bounds, sheilds
@@ -286,6 +325,19 @@ public class PlayScreen extends GameScreen {
                 //bounds
                 particles[p].bounds();
                 //sheilds
+                for(int s = 0; s < shields.length; ++s){
+                    Rectangle shieldRect = shields[s].getBoundingRect();
+                    if (shieldRect.contains(pX, pY)) {
+                        ShieldPart shieldParts[] = shields[s].shieldParts;
+                        for(int sp = 0; sp < shieldParts.length; ++sp) {
+                            if(shieldParts[sp].isAlive()) {
+                                if(shieldParts[sp].getRect().contains(pX, pY)) {
+                                    particles[p].bounce(shieldParts[sp].getX(), shieldParts[sp].getY(), (int) ShieldPart.WIDTH, (int) ShieldPart.HEIGHT);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         } // end particles loop
 
@@ -326,6 +378,22 @@ public class PlayScreen extends GameScreen {
                     particleEffects.add(p1SpecialBullet.hitBullet());
                 }
             }
+            //shields
+            for(int s = 0; s < shields.length; ++s){
+                Rectangle shieldRect = shields[s].getBoundingRect();
+                if(shieldRect.overlaps(p1SpecialBullet.getRect())){
+                    ShieldPart shieldParts[] = shields[s].shieldParts;
+                    for(int sp = 0; sp < shieldParts.length; ++sp) {
+                        if(shieldParts[sp].isAlive()) {
+                            Rectangle shieldPartRect = shieldParts[sp].getRect();
+                            if(shieldPartRect.overlaps(p1SpecialBullet.getRect())) {
+                                particleEffects.add(p1SpecialBullet.hit());
+                                particleEffects.add(shieldParts[sp].hitSpecialBullet());
+                            }
+                        }
+                    }
+                }
+            }
         } // end special bullet
 
         //enemyBullets and bounds and player
@@ -348,6 +416,25 @@ public class PlayScreen extends GameScreen {
                         particleEffects.add(bullet.hit());
                         swarm.removeBullet(i);
                         break;
+                    }
+                }
+            }
+            // shields
+            boolean enemyBulletHit = false;
+            for(int s = 0; s < shields.length; ++s){
+                Rectangle shieldRect = shields[s].getBoundingRect();
+                if(shieldRect.overlaps(bullet.getRect())){
+                    ShieldPart shieldParts[] = shields[s].shieldParts;
+                    for(int sp = 0; sp < shieldParts.length; ++sp) {
+                        if(shieldParts[sp].isAlive()) {
+                            Rectangle shieldPartRect = shieldParts[sp].getRect();
+                            if(shieldPartRect.overlaps(bullet.getRect())) {
+                                particleEffects.add(bullet.hit());
+                                particleEffects.add(shieldParts[sp].hitEnemyBullet());
+                                swarm.removeBullet(i);
+                                break;
+                            }
+                        }
                     }
                 }
             }

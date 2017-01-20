@@ -1,5 +1,6 @@
 package com.timbell.spaceinvaders.Entities;
 
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -14,6 +15,7 @@ public class EnemyTwo extends Enemy {
     public static TextureRegion IMAGE_TWO;
     public static final int WIDTH = SpaceInvaders.UNIT * 3;
     public static final int HEIGHT = SpaceInvaders.UNIT * 2;
+    public static Sound firstHitSound;
 
     private int lives;
 
@@ -48,12 +50,15 @@ public class EnemyTwo extends Enemy {
 
     public ParticleEffect hit() {
         --lives;
-        hitSound.play(SpaceInvaders.volume);
         if(lives <= 0){
+            hitSound.play(SpaceInvaders.volume);
             die();
             ParticleEffect answer = ParticleEffectPool.getLarge();
             answer.reset(0, (int) (rect.x + rect.width / 2), (int) (rect.y + rect.height / 2), 10, 10, Color.WHITE);
             return answer;
+        }
+        else{
+            firstHitSound.play(SpaceInvaders.volume);
         }
         return null;
     }
