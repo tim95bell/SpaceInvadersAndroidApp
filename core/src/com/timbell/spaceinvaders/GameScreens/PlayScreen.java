@@ -91,6 +91,9 @@ public class PlayScreen extends GameScreen {
             this.levelName = levels.peek().getName();
             layout.setText(font, levelName);
             swarm.loadLevel(levels.pop());
+            for(int i = 0; i < shields.length; ++i){
+                shields[i].reset();
+            }
         }
         else{
             changeScreen(SpaceInvaders.GAMEOVER_STATE);
@@ -120,8 +123,11 @@ public class PlayScreen extends GameScreen {
 
             gameOver = gameOver || p1.isDead();
 
-            if (gameOver)
+            if (gameOver) {
+                if(!p1.isDead())
+                    p1.die();
                 changeScreen(SpaceInvaders.GAMEOVER_STATE);
+            }
         }
         else if(state == STATE_TRANSITION_GAMEOVERSCREEN){
             transitionTime += delta;
@@ -129,6 +135,7 @@ public class PlayScreen extends GameScreen {
                 ParticleEffectPool.freeAll(particleEffects);
                 game.changeScreen(SpaceInvaders.GAMEOVER_STATE);
             }
+            motherShip.dieNow();
             SpaceInvaders.mix(BG_COLOR, GameOverScreen.BG_COLOR, transitionTime / transitionPeriod, backgroundColor);
         }
         else if(state == STATE_ENTERING){
@@ -206,12 +213,13 @@ public class PlayScreen extends GameScreen {
                 game.sr.setColor(1f, 1f, 1f, 0.25f);
                 game.sr.rect(0 - SpaceInvaders.xOff, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
                 game.sr.rect(SpaceInvaders.WIDTH, 0 - SpaceInvaders.yOff, SpaceInvaders.xOff, SpaceInvaders.viewportHeight);
+
+                for(int i = 0; i < shields.length; ++i){
+                    shields[i].draw(game.sr, fadeTransparancy);
+                }
             game.sr.end();
 
             game.sb.begin();
-            for(int i = 0; i < shields.length; ++i){
-                shields[i].draw(game.sb, fadeTransparancy);
-            }
             game.sb.end();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
@@ -439,6 +447,22 @@ public class PlayScreen extends GameScreen {
                 }
             }
         } // end enemyBullets
+
+        // enemies and shields
+        for(int e = swarm.members.length-1; e >= 0; --e){
+            if(!swarm.members[e].isDead()){
+                Rectangle enemyRect = swarm.members[e].getRect();
+                for(int s = 0; s < shields.length; ++s){
+                    if(shields[s].getBoundingRect().overlaps(enemyRect) && !shields[s].isDead()){
+                        particleEffects.add(shields[s].die());
+                        ParticleEffect enemyParticlleEffect = swarm.members[e].hit();
+                        if(enemyParticlleEffect != null)
+                            particleEffects.add( enemyParticlleEffect );
+                    }
+                }
+            }
+        }
+
     } // end collision()
 
     //-----------------SCREEN-----------------//

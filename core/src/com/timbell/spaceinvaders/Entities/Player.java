@@ -18,7 +18,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class Player {
     public enum Powerup{
-        NONE, DOUBLESHOT, LEFTSHOT, RIGHTSHOT, VERTICALSHOT
+        NONE, DOUBLESHOT, LEFTSHOT, RIGHTSHOT, VERTICALSHOT, EXTRA_LIVE
     }
     public enum State{
         ENTERING, NORMAL, RESPAWNING, DEAD
@@ -298,6 +298,11 @@ public class Player {
         return answer;
     }
 
+    public void die(){
+        lives = 0;
+        state = State.DEAD;
+    }
+
     public void center(){
         loc.x = SpaceInvaders.WIDTH/2 - getWidth()/2;
     }
@@ -432,10 +437,10 @@ public class Player {
         else if(r <= 6f/dividor)
             powerup = Powerup.RIGHTSHOT;
         else {
-            powerupTimeLeft = 0;
+            powerupTimeLeft = 5;
             if(lives < 3)
                 lives++;
-            return "Extra Life";
+            powerup = Powerup.EXTRA_LIVE;
         }
 
         this.powerup = powerup;
@@ -464,6 +469,9 @@ public class Player {
             s = "Left Shot";
         else if(powerup == Powerup.VERTICALSHOT)
             s = "Vertical Shot";
+        else if(powerup == Powerup.EXTRA_LIVE){
+            s = "Extra Life";
+        }
 
         return s;
     }

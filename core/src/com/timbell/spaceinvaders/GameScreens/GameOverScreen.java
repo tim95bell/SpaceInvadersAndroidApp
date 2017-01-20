@@ -44,10 +44,11 @@ public class GameOverScreen extends GameScreen {
 
         p1.clearBullets();
 
-        if(p1.getScore() == SpaceInvaders.MAX_SCORE)
-            mainText = "You Won!";
-        else
+        if(p1.isDead())
             mainText = "Game Over";
+        else
+            mainText = "You Won!";
+
         thisScore = p1.getScore();
         oldHighScore = game.getHighScore();
         if(thisScore > oldHighScore) {

@@ -2,9 +2,7 @@ package com.timbell.spaceinvaders.Entities;
 
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
@@ -14,15 +12,12 @@ import com.timbell.spaceinvaders.SpaceInvaders;
  * Created by timbell on 20/1/17.
  */
 public class ShieldPart {
-    public static Texture HIT0_IMAGE;
-    public static Texture HIT1_IMAGE;
-    public static Texture HIT2_IMAGE;
     public static Sound hitSound;
     public static final float WIDTH = SpaceInvaders.UNIT*1.5f;
-    public static final float HEIGHT = SpaceInvaders.UNIT;
+    public static final float HEIGHT = SpaceInvaders.UNIT/2;
     private float x, y;
     private int health;
-    private final int MAX_HEALTH = 3;
+    private final int MAX_HEALTH = 1;
     private Rectangle rect;
     private Color color;
 
@@ -38,13 +33,9 @@ public class ShieldPart {
         this.health = MAX_HEALTH;
     }
 
-    public void draw(SpriteBatch batch){
-        if(health == 3)
-            batch.draw(HIT0_IMAGE, x, y, WIDTH, HEIGHT);
-        else if(health == 2)
-            batch.draw(HIT1_IMAGE, x, y, WIDTH, HEIGHT);
-        else if(health == 1)
-            batch.draw(HIT2_IMAGE, x, y, WIDTH, HEIGHT);
+    public void draw(ShapeRenderer sr){
+        if (health == 1)
+            sr.rect(x, y, WIDTH, HEIGHT);
     }
 
     public boolean isAlive(){
@@ -85,5 +76,9 @@ public class ShieldPart {
 
     public float getY(){
         return y;
+    }
+
+    public void die(){
+        health = 0;
     }
 }

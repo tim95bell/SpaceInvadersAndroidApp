@@ -129,9 +129,6 @@ public class SpaceInvaders extends Game {
 		EnemyThree.IMAGE_ONE = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 0, 8, 8, 8);
 		EnemyThree.IMAGE_TWO = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 8, 8, 8, 8);
 		MotherShip.image = new TextureRegion(SpaceInvaders.SPRITE_SHEET, 29, 8, 16, 7);
-		ShieldPart.HIT0_IMAGE = new Texture("shieldhit0.png");
-		ShieldPart.HIT1_IMAGE = new Texture("shieldhit1.png");
-		ShieldPart.HIT2_IMAGE = new Texture("shieldhit1.png");
 		ShieldPart.hitSound = EnemyTwo.firstHitSound = Gdx.audio.newSound(Gdx.files.internal("shieldHit16bit.wav"));
 
 		Button.hitSound = Enemy.hitSound = Gdx.audio.newSound(Gdx.files.internal("light_bulb_smash.wav"));
@@ -143,9 +140,7 @@ public class SpaceInvaders extends Game {
 
 		Button.exitSymbol = new Texture("exitSymbol.png");
 		Button.playSymbol = new Texture("playSymbol512.png");
-		Button.settingsSymbol = new Texture("settingsSymbol.png");
 		Button.retrySymbol = new Texture("retrySymbol.png");
-		Button.tutorialSymbol = new Texture("questionSymbol512.png");
 		Button.okaySymbol = new Texture("thumbsUp512.png");
 	}
 
@@ -166,14 +161,10 @@ public class SpaceInvaders extends Game {
 		Player.hitSound.dispose();
 		Swarm.moveSound.dispose();
 		ShieldPart.hitSound.dispose();
-		ShieldPart.HIT0_IMAGE.dispose();
-		ShieldPart.HIT1_IMAGE.dispose();
-		ShieldPart.HIT2_IMAGE.dispose();
 
 		SPRITE_SHEET.dispose();
 		Button.exitSymbol.dispose();
 		Button.playSymbol.dispose();
-		Button.settingsSymbol.dispose();
 		Button.retrySymbol.dispose();
 
 		sb.dispose();

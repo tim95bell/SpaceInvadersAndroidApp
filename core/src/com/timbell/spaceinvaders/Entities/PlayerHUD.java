@@ -106,7 +106,11 @@ public class PlayerHUD {
         Powerup powerup = p1.getPowerup();
         if(powerup != Powerup.NONE){
             font.setColor(Color.ORANGE);
-            layout.setText(font, String.format("%s : %.0f", p1.getPowerupString(powerup), p1.getPowerupTimeLeft() ));
+            if(powerup == Powerup.EXTRA_LIVE){
+                layout.setText(font, String.format("%s", p1.getPowerupString(powerup)));
+            }else {
+                layout.setText(font, String.format("%s : %.0f", p1.getPowerupString(powerup), p1.getPowerupTimeLeft()));
+            }
             font.draw(sb, layout, SpaceInvaders.WIDTH - layout.width / 4 * 5, topOfUpper);
         }
     }
