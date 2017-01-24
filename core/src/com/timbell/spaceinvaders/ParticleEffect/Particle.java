@@ -155,12 +155,6 @@ public class Particle{
         return vel.y;
     }
 
-    public void slowXVel(){
-        slowXVel(0.95f);
-    }
-    public void slowYVel(){
-        slowYVel(0.95f);
-    }
     public void slowXVel(float multiplier){
         vel.x *= multiplier;
     }

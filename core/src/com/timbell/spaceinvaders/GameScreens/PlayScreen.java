@@ -143,7 +143,6 @@ public class PlayScreen extends GameScreen {
             if(enterPos >= 0){
                 enterPos = 0;
                 state = STATE_NORMAL;
-                swarm.setEntering(false);
                 p1.setState(Player.State.NORMAL);
                 transitionTime = 0;
                 return;
@@ -263,7 +262,8 @@ public class PlayScreen extends GameScreen {
             }
             // enemy bullets
             Bullet[] enemyBullets = swarm.bullets;
-            for(int j = enemyBullets.length-1; j >= 0 && !bulletHit; --j){
+            int numBullets = swarm.getNumBullets();
+            for(int j = numBullets-1; j >= 0 && !bulletHit; --j){
                 if(enemyBullets[j].getRect().overlaps(bullet.getRect())){
                     particleEffects.add( enemyBullets[j].hit() );
                     swarm.removeBullet(j);
@@ -379,7 +379,8 @@ public class PlayScreen extends GameScreen {
                 }
             }
             // enemy bullets
-            for(int j = swarm.bullets.length-1; j >= 0; --j){
+            int numBullets = swarm.getNumBullets();
+            for(int j = numBullets-1; j >= 0; --j){
                 if(swarm.bullets[j].getRect().overlaps(p1SpecialBullet.getRect())){
                     particleEffects.add(swarm.bullets[j].hit());
                     swarm.removeBullet(j);
@@ -449,19 +450,39 @@ public class PlayScreen extends GameScreen {
         } // end enemyBullets
 
         // enemies and shields
-        for(int e = swarm.members.length-1; e >= 0; --e){
-            if(!swarm.members[e].isDead()){
-                Rectangle enemyRect = swarm.members[e].getRect();
-                for(int s = 0; s < shields.length; ++s){
-                    if(shields[s].getBoundingRect().overlaps(enemyRect) && !shields[s].isDead()){
-                        particleEffects.add(shields[s].die());
-                        ParticleEffect enemyParticlleEffect = swarm.members[e].hit();
-                        if(enemyParticlleEffect != null)
-                            particleEffects.add( enemyParticlleEffect );
+        boolean shieldHit;
+        for(int s = 0; s < shields.length; ++s){
+            if(!shields[s].isDead()) {
+                shieldHit = false;
+                for (int e = swarm.members.length - 1; e >= 0; --e) {
+                    if(!swarm.members[e].isDead()) {
+                        if (shields[s].getBoundingRect().overlaps(swarm.members[e].getRect())) {
+                            ShieldPart shieldParts[] = shields[s].shieldParts;
+                            boolean shieldPartHit = false;
+                            for(int sp = 0; sp < shieldParts.length && !shieldPartHit; ++sp){
+                                if(shieldParts[sp].isAlive() && shieldParts[sp].getRect().overlaps(swarm.members[e].getRect())){
+                                    shieldPartHit = true;
+                                }
+                            }
+                            if(shieldPartHit) {
+                                shieldHit = true;
+                                ParticleEffect enemyParticlleEffect = swarm.members[e].hit();
+                                if (enemyParticlleEffect != null)
+                                    particleEffects.add(enemyParticlleEffect);
+                            }
+                        }
+                    }
+                }
+                if (shieldHit) {
+                    ParticleEffect[] shieldParticleEffects = shields[s].die();
+                    for(int spe = 0; spe < shieldParticleEffects.length; ++spe){
+                        particleEffects.add(shieldParticleEffects[spe]);
                     }
                 }
             }
         }
+
+
 
     } // end collision()
 
@@ -502,11 +523,6 @@ public class PlayScreen extends GameScreen {
     public void keyDown(int keyCode) {
         if(state == STATE_NORMAL  &&  keyCode == Input.Keys.SPACE)
             p1.shoot();
-        // TODO: remove this
-        if(keyCode == Input.Keys.M)
-            motherShip.reset();
-        if(keyCode == Input.Keys.H)
-            p1.hit();
     }
 
     @Override

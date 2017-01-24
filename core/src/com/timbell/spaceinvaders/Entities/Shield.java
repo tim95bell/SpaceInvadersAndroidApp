@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.timbell.spaceinvaders.ParticleEffect.ParticleEffect;
-import com.timbell.spaceinvaders.ParticleEffect.ParticleEffectPool;
 import com.timbell.spaceinvaders.SpaceInvaders;
 
 /**
@@ -51,12 +50,23 @@ public class Shield {
         }
     }
 
-    public ParticleEffect die(){
+    public ParticleEffect[] die(){
+        int count = 0;
         for(int i = 0; i < shieldParts.length; ++i){
-            shieldParts[i].die();
+            if(shieldParts[i].isAlive()){
+                count++;
+            }
         }
-        ParticleEffect answer = ParticleEffectPool.getLarge();
-        answer.reset(0, (int)(x + HEIGHT/2), (int)(y + WIDTH/2), (int)WIDTH, (int)HEIGHT, color);
+        ParticleEffect answer[] = new ParticleEffect[count];
+        int answerIndex = 0;
+        for(int i = 0; i < shieldParts.length; ++i){
+            if(shieldParts[i].isAlive()){
+                answer[answerIndex++] = shieldParts[i].hitEnemy();
+            }
+        }
+        if(count > 0)
+            Player.hitSound.play();
+
         return answer;
     }
 

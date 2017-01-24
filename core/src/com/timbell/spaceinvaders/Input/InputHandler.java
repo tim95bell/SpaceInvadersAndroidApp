@@ -1,8 +1,11 @@
 package com.timbell.spaceinvaders.Input;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.timbell.spaceinvaders.GameScreens.GameScreen;
+
 
 public class InputHandler implements InputProcessor {
 
@@ -14,6 +17,9 @@ public class InputHandler implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
+        if(keycode == Input.Keys.ESCAPE){
+            Gdx.app.exit();
+        }
         screen.keyDown(keycode);
         return true;
     }

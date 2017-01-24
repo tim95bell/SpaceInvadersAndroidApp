@@ -17,8 +17,6 @@ public class Swarm {
     public static final int COLS = 10;
     public static Sound moveSound;
 
-    private boolean entering;
-
     private int direction = 1;
     public static final int START_HEIGHT = SpaceInvaders.HEIGHT - SpaceInvaders.UNIT*4;
     private State state;
@@ -44,7 +42,6 @@ public class Swarm {
         int swarmWidth = (COLS*3*SpaceInvaders.UNIT) + (COLS-1)*SpaceInvaders.UNIT;
         sideWidth = (SpaceInvaders.WIDTH-swarmWidth)/2.0;
         this.moveSound = Gdx.audio.newSound(Gdx.files.internal("fastinvader116bit.wav"));
-        entering = true;
         numBullets = 0;
         numTimesMovedDown = 0;
         this.state = State.NORMAL;
@@ -195,7 +192,6 @@ public class Swarm {
 
         this.numBullets = 0;
         movePeriod = maxMovePeriod;
-        entering = true;
         numTimesMovedDown = 0;
         this.state = State.NORMAL;
     }
@@ -225,10 +221,6 @@ public class Swarm {
 
     public void resume(){
         state = State.NORMAL;
-    }
-
-    public void setEntering(boolean entering){
-        this.entering = entering;
     }
 
     public int getNumBullets(){

@@ -49,7 +49,7 @@ public class ShieldPart {
     public ParticleEffect hitPlayerBullet(){
         --health;
         ParticleEffect answer = ParticleEffectPool.getSmall();
-        answer.reset(0, 0,(int) (x + WIDTH / 2f),(int)( y ), 3, 3, color);
+        answer.reset(0, 0,(int) (x + WIDTH / 2f),(int)( y ), (int)WIDTH, (int)HEIGHT, color);
         hitSound.play(SpaceInvaders.volume);
         return answer;
     }
@@ -57,7 +57,7 @@ public class ShieldPart {
     public ParticleEffect hitEnemyBullet(){
         --health;
         ParticleEffect answer = ParticleEffectPool.getSmall();
-        answer.reset(0, 0,(int) (x + WIDTH / 2f),(int)( y + HEIGHT / 2f), 3, 3, color);
+        answer.reset(0, 0,(int) (x + WIDTH / 2f),(int)( y + HEIGHT / 2f), (int)WIDTH, (int)HEIGHT, color);
         hitSound.play(SpaceInvaders.volume);
         return answer;
     }
@@ -65,8 +65,15 @@ public class ShieldPart {
     public ParticleEffect hitSpecialBullet(){
         health = 0;
         ParticleEffect answer = ParticleEffectPool.getSmall();
-        answer.reset(0, 0,(int) (x + WIDTH / 2f),(int)( y + HEIGHT / 2f), 3, 3, color);
+        answer.reset(0, 0,(int) (x + WIDTH / 2f),(int)( y + HEIGHT / 2f), (int)WIDTH, (int)HEIGHT, color);
         hitSound.play(SpaceInvaders.volume);
+        return answer;
+    }
+
+    public ParticleEffect hitEnemy(){
+        health = 0;
+        ParticleEffect answer = ParticleEffectPool.getSmall();
+        answer.reset(0, 0,(int) (x + WIDTH / 2f),(int)( y + HEIGHT / 2f), (int)WIDTH, (int)HEIGHT, color);
         return answer;
     }
 

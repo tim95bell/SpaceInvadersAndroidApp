@@ -47,8 +47,6 @@ public class SpaceInvaders extends Game {
 
 	public static final int UNIT = 10;
 
-	public static final int MAX_SCORE  = 3780;
-
 	public static Texture SPRITE_SHEET;
 
 	public static float volume = 1.0f;
